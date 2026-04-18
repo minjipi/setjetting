@@ -1,7 +1,8 @@
 <template>
   <div class="media-card" @click="$emit('click')">
-    <div class="poster" :style="{ background: item.gradient }">
-      <span class="poster-emoji">{{ item.emoji }}</span>
+    <div class="poster" :style="item.posterImageUrl ? {} : { background: item.gradient }">
+      <img v-if="item.posterImageUrl" :src="item.posterImageUrl" :alt="item.title" class="poster-img" />
+      <span v-else class="poster-emoji">{{ item.emoji }}</span>
       <span v-if="item.badge" class="type-badge">{{ item.badge }}</span>
     </div>
     <p class="media-title">{{ item.title }}</p>
@@ -22,8 +23,9 @@ addIcons({ 'location-outline': locationOutline });
 defineProps<{
   item: {
     title: string;
-    emoji: string;
-    gradient: string;
+    posterImageUrl?: string;
+    emoji?: string;
+    gradient?: string;
     badge?: string;
     spots?: number;
   };
@@ -49,6 +51,12 @@ defineEmits(['click']);
   position: relative;
   overflow: hidden;
   box-shadow: 0 3px 10px rgba(0,0,0,0.12);
+}
+
+.poster-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
 }
 
 .poster-emoji {
