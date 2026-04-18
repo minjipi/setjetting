@@ -1,8 +1,11 @@
 package com.setjetting.api.domain.contents.model;
 import com.setjetting.api.common.model.BaseEntity;
+import com.setjetting.api.domain.place.model.Place;
 import jakarta.persistence.*;
 import lombok.*;
 import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Getter
@@ -32,4 +35,8 @@ public class Content extends BaseEntity {
 
     @Column(name = "RELEASE_DATE")
     private LocalDate releaseDate; // 방영/개봉일
+
+    @Builder.Default
+    @OneToMany(mappedBy = "content", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Place> places = new ArrayList<>();
 }
