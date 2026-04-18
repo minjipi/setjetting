@@ -41,8 +41,8 @@
               <ion-icon name="arrow-back-outline"/>
             </button>
             <span class="top-title">마이페이지</span>
-            <button class="top-settings-btn">
-              <ion-icon name="settings-outline"/>
+            <button class="top-settings-btn" @click="router.push('/camera')">
+              <ion-icon name="camera-outline"/>
             </button>
           </div>
 
@@ -235,8 +235,8 @@ async function onLogout() {
   router.replace('/home');
 }
 
-function onSpotClick(_spot: any) {
-  // TODO: 성지 상세 페이지로 이동
+function onSpotClick(spot: any) {
+  router.push(`/camera/${spot.id}`);
 }
 
 function onPhotoClick(_photo: any) {

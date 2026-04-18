@@ -3,6 +3,7 @@ import { RouteRecordRaw } from 'vue-router';
 import AuthPage from '@/pages/AuthPage.vue';
 import HomePage from '@/pages/HomePage.vue';
 import MyPage from '@/pages/MyPage.vue';
+import CameraPage from '@/pages/CameraPage.vue';
 
 const routes: Array<RouteRecordRaw> = [
   {
@@ -23,6 +24,12 @@ const routes: Array<RouteRecordRaw> = [
     path: '/mypage',
     name: 'MyPage',
     component: MyPage,
+    meta: { requiresAuth: true },
+  },
+  {
+    path: '/camera/:spotId?',
+    name: 'Camera',
+    component: CameraPage,
     meta: { requiresAuth: true },
   },
 ];
