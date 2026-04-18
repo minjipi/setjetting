@@ -1,7 +1,7 @@
 import $axios from './axios';
 
-export const contentsApi = {
+export const contentApi = {
   /** 목록 조회 */
   getList: () =>
-    $axios.get('/contents/all').then(res => res.data.results).catch((error) => {error.data}),
+    $axios.get('/content/all').then(res => res.data.results).catch((error) => {error.data}),
 };
