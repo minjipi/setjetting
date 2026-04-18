@@ -1,0 +1,29 @@
+:root {
+  --ion-color-primary: #14BCED;
+  --ion-color-primary-rgb: 20, 188, 237;
+  --ion-color-primary-contrast: #ffffff;
+  --ion-color-primary-shade: #0fa8d4;
+  --ion-color-primary-tint: #35c8f0;
+
+  --brand: #14BCED;
+  --brand-dark: #0fa8d4;
+  --brand-light: #e8f9fd;
+  --brand-mid: rgba(20, 188, 237, 0.15);
+
+  /* bg-white: background-color: rgb(255 255 255) */
+  --ion-background-color: rgb(255 255 255);
+  --ion-background-color-rgb: 255, 255, 255;
+
+  --bg: rgb(255 255 255);
+  --bg-card: #ffffff;
+  /* bg-gray-200: background-color: rgb(229 231 235) */
+  --bg-section: rgb(229 231 235);
+  --bg-shadow: rgb(229 231 235);
+
+  --text-primary: #0f172a;
+  --text-secondary: #64748b;
+  --text-muted: #94a3b8;
+
+  --border: #e2f4fa;
+  --shadow: 0 2px 12px rgba(20, 188, 237, 0.10);
+}
