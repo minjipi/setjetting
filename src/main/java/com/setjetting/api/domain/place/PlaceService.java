@@ -1,7 +1,7 @@
 package com.setjetting.api.domain.place;
 
-import com.setjetting.api.domain.contents.ContentRepository;
-import com.setjetting.api.domain.contents.model.Content;
+import com.setjetting.api.domain.content.ContentRepository;
+import com.setjetting.api.domain.content.model.Content;
 import com.setjetting.api.domain.place.model.CreatePlaceReq;
 import com.setjetting.api.domain.place.model.CreatePlaceRes;
 import com.setjetting.api.domain.place.model.Place;

@@ -1,6 +1,8 @@
 package com.setjetting.api.domain.place;
 
 import com.setjetting.api.common.model.BaseResponse;
+import com.setjetting.api.domain.content.ContentService;
+import com.setjetting.api.domain.content.model.ContentDetailRes;
 import com.setjetting.api.domain.place.model.CreatePlaceReq;
 import com.setjetting.api.domain.place.model.CreatePlaceRes;
 import com.setjetting.api.domain.place.model.PlaceListRes;
@@ -20,6 +22,7 @@ import java.util.List;
 public class PlaceController {
 
     private final PlaceService placeService;
+    private final ContentService contentService;
 
     @PostMapping("/write")
     @Operation(summary = "새 장소 등록", description = "특정 작품에 속하는 새로운 촬영 장소를 등록합니다.")
@@ -37,6 +40,11 @@ public class PlaceController {
         return ResponseEntity.ok(BaseResponse.success(response));
     }
 
+    @GetMapping("/{placeIdx}")
+    @Operation(summary = "장소 기준 작품 상세 조회", description = "장소 ID를 통해 해당 작품의 전체 상세 정보를 조회합니다.")
+    public ResponseEntity<BaseResponse<ContentDetailRes>> getContentDetailByPlace(@PathVariable Long placeIdx) {
+        return ResponseEntity.ok(BaseResponse.success(contentService.getContentDetailByPlace(placeIdx)));
+    }
 
     @GetMapping("/content/{contentIdx}")
     @Operation(summary = "작품별 장소 목록 조회", description = "특정 작품(Content IDX)에 속한 모든 촬영 장소 목록을 반환합니다.")

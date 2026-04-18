@@ -1,9 +1,10 @@
-package com.setjetting.api.domain.contents;
+package com.setjetting.api.domain.content;
 
 import com.setjetting.api.common.model.BaseResponse;
-import com.setjetting.api.domain.contents.model.ContentListRes;
-import com.setjetting.api.domain.contents.model.CreateContentReq;
-import com.setjetting.api.domain.contents.model.CreateContentRes;
+import com.setjetting.api.domain.content.model.ContentDetailRes;
+import com.setjetting.api.domain.content.model.ContentListRes;
+import com.setjetting.api.domain.content.model.CreateContentReq;
+import com.setjetting.api.domain.content.model.CreateContentRes;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
@@ -14,7 +15,7 @@ import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/contents")
+@RequestMapping("/content")
 @Tag(name = "콘텐츠(작품) 컨트롤러")
 public class ContentController {
 
@@ -33,6 +34,13 @@ public class ContentController {
     public ResponseEntity<BaseResponse<List<ContentListRes>>> getContents(
             @RequestParam(required = false) String type) {
         List<ContentListRes> response = contentService.getContentList(type);
+        return ResponseEntity.ok(BaseResponse.success(response));
+    }
+
+    @GetMapping("/{idx}")
+    @Operation(summary = "작품 상세 조회", description = "작품 정보와 해당 작품의 모든 성지 목록을 조회합니다.")
+    public ResponseEntity<BaseResponse<ContentDetailRes>> getContentDetail(@PathVariable Long idx) {
+        ContentDetailRes response = contentService.getContentDetail(idx);
         return ResponseEntity.ok(BaseResponse.success(response));
     }
 }
