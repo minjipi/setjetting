@@ -1,4 +1,4 @@
-package com.setjetting.api.domain.contents.model;
+package com.setjetting.api.domain.content.model;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.*;

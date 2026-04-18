@@ -2,7 +2,7 @@ package com.setjetting.api.domain.place.model;
 
 import com.setjetting.api.common.model.BaseEntity;
 
-import com.setjetting.api.domain.contents.model.Content;
+import com.setjetting.api.domain.content.model.Content;
 import jakarta.persistence.*;
 import lombok.*;
 

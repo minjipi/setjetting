@@ -1,4 +1,4 @@
-package com.setjetting.api.domain.contents.model;
+package com.setjetting.api.domain.content.model;
 
 import lombok.*;
 

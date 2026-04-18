@@ -1,4 +1,4 @@
-package com.setjetting.api.domain.contents.model;
+package com.setjetting.api.domain.content.model;
 import com.setjetting.api.common.model.BaseEntity;
 import com.setjetting.api.domain.place.model.Place;
 import jakarta.persistence.*;
