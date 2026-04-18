@@ -102,14 +102,14 @@
                                 <div class="media-grid">
                                     <MediaCard
                                             v-for="item in popularContents"
-                                            :key="item.title"
+                                            :key="item.contentIdx"
                                             :item="item"
-                                            @click="onMediaClick(item)"
+                                            @click="onContentClick(item)"
                                     />
                                 </div>
                             </section>
 
-                            <!-- 인기 작품 -->
+                            <!-- 인기 성지 -->
                             <section class="section">
                                 <div class="section-header">
                                     <h3 class="section-title">인기 성지</h3>
@@ -121,9 +121,9 @@
                                 <div class="media-grid">
                                     <MediaCard
                                             v-for="item in popularPlace"
-                                            :key="item.title"
+                                            :key="item.placeIdx"
                                             :item="item"
-                                            @click="onMediaClick(item)"
+                                            @click="onPlaceClick(item)"
                                     />
                                 </div>
                             </section>
@@ -230,8 +230,12 @@ function focusSearch() {
     searchInputEl.value?.focus();
 }
 
-function onMediaClick(_item: any) {
-    // TODO: router.push(`/media/${_item.id}`)
+function onContentClick(item: any) {
+    router.push({ name: 'ContentDetail', params: { id: item.contentIdx }, state: { content: item } });
+}
+
+function onPlaceClick(item: any) {
+    router.push({ name: 'PlaceDetail', params: { id: item.placeIdx }, state: { place: item } });
 }
 
 const popularContents = ref([]);
@@ -248,6 +252,7 @@ async function loadPlaces() {
     const data = await placeApi.getList();
     if (Array.isArray(data)) {
         popularPlace.value = data.map(p => ({
+            placeIdx: p.placeIdx,
             title: p.name,
             posterImageUrl: p.placeImageUrl,
         }));
