@@ -101,7 +101,7 @@
                                 </div>
                                 <div class="media-grid">
                                     <MediaCard
-                                            v-for="item in recentItems"
+                                            v-for="item in popularContents"
                                             :key="item.title"
                                             :item="item"
                                             @click="onMediaClick(item)"
@@ -120,7 +120,7 @@
                                 </div>
                                 <div class="media-grid">
                                     <MediaCard
-                                            v-for="item in popularItems"
+                                            v-for="item in popularPlace"
                                             :key="item.title"
                                             :item="item"
                                             @click="onMediaClick(item)"
@@ -198,6 +198,7 @@ import MapSection from '@/components/home/MapSection.vue';
 import MediaCard from '@/components/home/MediaCard.vue';
 import {useAuth} from '@/composables/useAuth';
 import { contentsApi } from '@/api/contentsApi';
+import { placeApi } from '@/api/placeApi';
 
 addIcons({
     'search-outline': searchOutline,
@@ -233,18 +234,29 @@ function onMediaClick(_item: any) {
     // TODO: router.push(`/media/${_item.id}`)
 }
 
-const recentItems = ref([]);
-const popularItems = ref([]);
+const popularContents = ref([]);
+const popularPlace = ref([]);
 
 async function loadContents() {
     const data = await contentsApi.getList();
     if (Array.isArray(data)) {
-        recentItems.value = data;
+        popularContents.value = data;
+    }
+}
+
+async function loadPlaces() {
+    const data = await placeApi.getList();
+    if (Array.isArray(data)) {
+        popularPlace.value = data.map(p => ({
+            title: p.name,
+            posterImageUrl: p.placeImageUrl,
+        }));
     }
 }
 
 onMounted(() => {
     loadContents();
+    loadPlaces();
 })
 </script>
 
