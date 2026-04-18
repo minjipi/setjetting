@@ -3,6 +3,7 @@ package com.setjetting.api.domain.contents;
 import com.setjetting.api.domain.contents.model.Content;
 import com.setjetting.api.domain.contents.model.ContentListRes;
 import com.setjetting.api.domain.contents.model.CreateContentReq;
+import com.setjetting.api.domain.contents.model.CreateContentRes;
 import org.springframework.transaction.annotation.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -19,9 +20,10 @@ public class ContentService {
 
     // 작품 등록
     @Transactional
-    public Long createContent(CreateContentReq dto) {
+    public CreateContentRes createContent(CreateContentReq dto) {
         Content content = dto.toEntity();
-        return contentRepository.save(content).getIdx();
+        Long savedIdx = contentRepository.save(content).getIdx();
+        return CreateContentRes.of(savedIdx);
     }
 
     // 작품 목록 조회
