@@ -93,7 +93,7 @@
                             <!-- 최근 업데이트 -->
                             <section class="section">
                                 <div class="section-header">
-                                    <h3 class="section-title">최근 업데이트</h3>
+                                    <h3 class="section-title">인기 작품</h3>
                                     <button class="see-all-btn">
                                         전체보기
                                         <ion-icon name="chevron-forward-outline"/>
@@ -112,7 +112,7 @@
                             <!-- 인기 작품 -->
                             <section class="section">
                                 <div class="section-header">
-                                    <h3 class="section-title">인기 작품</h3>
+                                    <h3 class="section-title">인기 성지</h3>
                                     <button class="see-all-btn">
                                         전체보기
                                         <ion-icon name="chevron-forward-outline"/>
@@ -187,16 +187,17 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue';
-import { IonPage, IonContent, IonIcon, useIonRouter } from '@ionic/vue';
-import { addIcons } from 'ionicons';
+import {ref, computed, onMounted} from 'vue';
+import {IonPage, IonContent, IonIcon, useIonRouter} from '@ionic/vue';
+import {addIcons} from 'ionicons';
 import {
     searchOutline, home, mapOutline, bookmarkOutline,
     chevronForwardOutline, notificationsOutline, personOutline
 } from 'ionicons/icons';
 import MapSection from '@/components/home/MapSection.vue';
 import MediaCard from '@/components/home/MediaCard.vue';
-import { useAuth } from '@/composables/useAuth';
+import {useAuth} from '@/composables/useAuth';
+import { contentsApi } from '@/api/contentsApi';
 
 addIcons({
     'search-outline': searchOutline,
@@ -209,7 +210,7 @@ addIcons({
 });
 
 const router = useIonRouter();
-const { isLoggedIn, user } = useAuth();
+const {isLoggedIn, user} = useAuth();
 
 const userInitial = computed(() => user.value?.name?.charAt(0).toUpperCase() ?? 'U');
 
@@ -232,29 +233,19 @@ function onMediaClick(_item: any) {
     // TODO: router.push(`/media/${_item.id}`)
 }
 
-const recentItems = ref([
-    {title: 'Akane-banashi', emoji: '🎭', gradient: 'linear-gradient(145deg,#dbeafe,#bfdbfe)', badge: '만화', spots: 8},
-    {title: '옆집 천사님 때문에 어지럽다', emoji: '👼', gradient: 'linear-gradient(145deg,#dcfce7,#bbf7d0)', badge: '애니', spots: 12},
-    {title: 'NIPPON SANGOKU', emoji: '⚔️', gradient: 'linear-gradient(145deg,#fee2e2,#fecaca)', badge: '애니', spots: 6},
-    {title: '주술회전 2기', emoji: '🔮', gradient: 'linear-gradient(145deg,#ede9fe,#ddd6fe)', badge: '애니', spots: 34},
-    {title: '슬램덩크', emoji: '🏀', gradient: 'linear-gradient(145deg,#fff7ed,#fed7aa)', badge: '애니', spots: 15},
-    {title: '귀멸의 칼날', emoji: '🗡️', gradient: 'linear-gradient(145deg,#fef2f2,#fecaca)', badge: '애니', spots: 22},
-]);
+const recentItems = ref([]);
+const popularItems = ref([]);
 
-const popularItems = ref([
-    {title: '너의 이름은.', emoji: '🌠', gradient: 'linear-gradient(145deg,#cffafe,#a5f3fc)', badge: '영화', spots: 21},
-    {
-        title: '청춘 돼지는 바니걸 선배의 꿈을 꾸지 않는다',
-        emoji: '🐰',
-        gradient: 'linear-gradient(145deg,#fce7f3,#fbcfe8)',
-        badge: '애니',
-        spots: 18
-    },
-    {title: '이태원 클라쓰', emoji: '🍺', gradient: 'linear-gradient(145deg,#f0fdf4,#bbf7d0)', badge: '드라마', spots: 11},
-    {title: '원령공주', emoji: '🌲', gradient: 'linear-gradient(145deg,#f0fdf4,#86efac)', badge: '영화', spots: 9},
-    {title: '러브라이브!', emoji: '⭐', gradient: 'linear-gradient(145deg,#fef9c3,#fde68a)', badge: '애니', spots: 28},
-    {title: '파친코', emoji: '🎰', gradient: 'linear-gradient(145deg,#f5f3ff,#ddd6fe)', badge: '드라마', spots: 7},
-]);
+async function loadContents() {
+    const data = await contentsApi.getList();
+    if (Array.isArray(data)) {
+        recentItems.value = data;
+    }
+}
+
+onMounted(() => {
+    loadContents();
+})
 </script>
 
 <style scoped>
@@ -768,7 +759,9 @@ const popularItems = ref([
         white-space: nowrap;
     }
 
-    .login-btn:hover { background: #0fa8d4; }
+    .login-btn:hover {
+        background: #0fa8d4;
+    }
 
     /* 콘텐츠 본문 배경 */
     .content-body {
