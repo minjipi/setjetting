@@ -119,26 +119,34 @@
                                 <ion-icon name="location-outline" class="empty-icon"/>
                                 <p>근처 50km 이내에 성지가 없습니다</p>
                             </div>
-                            <div v-else class="nearby-scroll">
-                                <div
-                                    v-for="item in nearbyPlaces"
-                                    :key="item.placeIdx"
-                                    class="nearby-card"
-                                    @click="onPlaceClick(item)"
-                                >
-                                    <div class="nearby-thumb">
-                                        <img v-if="item.placeImageUrl" :src="item.placeImageUrl" :alt="item.name"/>
-                                        <div v-else class="nearby-thumb-fallback">📍</div>
-                                    </div>
-                                    <div class="nearby-info">
-                                        <p class="nearby-name">{{ item.name }}</p>
-                                        <p class="nearby-address">{{ item.address }}</p>
-                                        <span class="nearby-dist">
-                                            <ion-icon name="navigate-outline"/>
-                                            {{ formatDist(item.distance) }}
-                                        </span>
+                            <div v-else class="nearby-carousel">
+                                <button class="carousel-btn carousel-btn--prev" @click="scrollNearby(-1)" aria-label="이전">
+                                    <ion-icon name="chevron-back-outline"/>
+                                </button>
+                                <div ref="nearbyScrollEl" class="nearby-scroll">
+                                    <div
+                                        v-for="item in nearbyPlaces"
+                                        :key="item.placeIdx"
+                                        class="nearby-card"
+                                        @click="onPlaceClick(item)"
+                                    >
+                                        <div class="nearby-thumb">
+                                            <img v-if="item.placeImageUrl" :src="item.placeImageUrl" :alt="item.name"/>
+                                            <div v-else class="nearby-thumb-fallback">📍</div>
+                                        </div>
+                                        <div class="nearby-info">
+                                            <p class="nearby-name">{{ item.name }}</p>
+                                            <p class="nearby-address">{{ item.address }}</p>
+                                            <span class="nearby-dist">
+                                                <ion-icon name="navigate-outline"/>
+                                                {{ formatDist(item.distance) }}
+                                            </span>
+                                        </div>
                                     </div>
                                 </div>
+                                <button class="carousel-btn carousel-btn--next" @click="scrollNearby(1)" aria-label="다음">
+                                    <ion-icon name="chevron-forward-outline"/>
+                                </button>
                             </div>
                         </section>
 
@@ -247,7 +255,7 @@ import {IonPage, IonContent, IonIcon, useIonRouter} from '@ionic/vue';
 import {addIcons} from 'ionicons';
 import {
     searchOutline, home, mapOutline, bookmarkOutline,
-    chevronForwardOutline, notificationsOutline, personOutline,
+    chevronForwardOutline, chevronBackOutline, notificationsOutline, personOutline,
     navigateOutline, navigate, locationOutline, closeCircleOutline,
 } from 'ionicons/icons';
 import MapSection from '@/components/home/MapSection.vue';
@@ -268,6 +276,7 @@ addIcons({
     'navigate': navigate,
     'location-outline': locationOutline,
     'close-circle-outline': closeCircleOutline,
+    'chevron-back-outline': chevronBackOutline,
 });
 
 const router = useIonRouter();
@@ -327,6 +336,33 @@ const nearbyPlaces = computed(() => {
 
 function formatDist(km: number) {
     return km < 1 ? `${Math.round(km * 1000)}m` : `${km.toFixed(1)}km`;
+}
+
+const nearbyScrollEl = ref<HTMLDivElement | null>(null);
+
+function scrollNearby(dir: 1 | -1) {
+    const el = nearbyScrollEl.value;
+    if (!el) return;
+
+    const distance = dir * 480;
+    const start = el.scrollLeft;
+    const target = Math.max(0, Math.min(start + distance, el.scrollWidth - el.clientWidth));
+    const duration = 420;
+    let startTime: number | null = null;
+
+    function easeInOutCubic(t: number) {
+        return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+    }
+
+    function step(timestamp: number) {
+        if (!startTime) startTime = timestamp;
+        const elapsed = timestamp - startTime;
+        const progress = Math.min(elapsed / duration, 1);
+        el.scrollLeft = start + (target - start) * easeInOutCubic(progress);
+        if (progress < 1) requestAnimationFrame(step);
+    }
+
+    requestAnimationFrame(step);
 }
 
 function requestLocation() {
@@ -557,20 +593,38 @@ onMounted(() => {
     animation: pulse 1.2s ease-in-out infinite;
 }
 
+.nearby-carousel {
+    position: relative;
+}
+
+.carousel-btn {
+    display: none;
+}
+
 .nearby-scroll {
+    display: flex;
+    flex-direction: row;
+    gap: 10px;
+    overflow-x: auto;
+    overflow-y: hidden;
+    scroll-snap-type: x mandatory;
+    -webkit-overflow-scrolling: touch;
+    padding-bottom: 4px;
+}
+
+.nearby-scroll::-webkit-scrollbar { display: none; }
+
+.nearby-card {
+    flex-shrink: 0;
+    width: 220px;
     display: flex;
     flex-direction: column;
     gap: 8px;
-}
-
-.nearby-card {
-    display: flex;
-    align-items: center;
-    gap: 12px;
     padding: 10px;
     border-radius: 14px;
     border: 1px solid #f3f4f6;
     cursor: pointer;
+    scroll-snap-align: start;
     transition: background 0.15s, border-color 0.15s;
 }
 
@@ -580,9 +634,9 @@ onMounted(() => {
 }
 
 .nearby-thumb {
-    width: 60px; height: 60px;
+    width: 100%; height: 120px;
     flex-shrink: 0;
-    border-radius: 12px;
+    border-radius: 10px;
     overflow: hidden;
     background: #f3f4f6;
     border: 1px solid #e5e7eb;
@@ -590,14 +644,13 @@ onMounted(() => {
 }
 
 .nearby-thumb img { width: 100%; height: 100%; object-fit: cover; }
-.nearby-thumb-fallback { font-size: 24px; }
+.nearby-thumb-fallback { font-size: 28px; }
 
 .nearby-info {
-    flex: 1;
-    min-width: 0;
     display: flex;
     flex-direction: column;
     gap: 3px;
+    min-width: 0;
 }
 
 .nearby-name {
@@ -659,11 +712,24 @@ onMounted(() => {
     font-size: 14px;
 }
 
-/* 미디어 그리드: 모바일 3열 */
+/* 미디어 그리드: 모바일 가로 스크롤 */
 .media-grid {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
+    display: flex;
+    flex-direction: row;
     gap: 10px;
+    overflow-x: auto;
+    overflow-y: hidden;
+    scroll-snap-type: x mandatory;
+    -webkit-overflow-scrolling: touch;
+    padding-bottom: 4px;
+}
+
+.media-grid::-webkit-scrollbar { display: none; }
+
+.media-grid :deep(.media-card) {
+    flex-shrink: 0;
+    width: 110px;
+    scroll-snap-align: start;
 }
 
 /* 구름 구분선 */
@@ -812,10 +878,20 @@ onMounted(() => {
         padding: 24px 28px 16px;
     }
 
-    /* 태블릿 4열 */
+    /* 태블릿: 그리드로 복원 */
     .media-grid {
+        display: grid;
         grid-template-columns: repeat(4, 1fr);
         gap: 14px;
+        overflow: visible;
+        scroll-snap-type: none;
+        padding-bottom: 0;
+    }
+
+    .media-grid :deep(.media-card) {
+        width: auto;
+        flex-shrink: unset;
+        scroll-snap-align: none;
     }
 
     .membership-banner {
@@ -832,6 +908,41 @@ onMounted(() => {
    데스크탑 (≥ 1024px)
 ═══════════════════════════════════════ */
 @media (min-width: 1024px) {
+
+    /* ── 근처 성지 캐러셀 ── */
+    .nearby-carousel {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .carousel-btn {
+        display: flex;
+        flex-shrink: 0;
+        align-items: center;
+        justify-content: center;
+        width: 36px; height: 36px;
+        border-radius: 50%;
+        border: 1.5px solid rgba(20, 188, 237, 0.3);
+        background: #fff;
+        color: var(--brand, #14BCED);
+        font-size: 18px;
+        cursor: pointer;
+        transition: background 0.15s, border-color 0.15s, box-shadow 0.15s;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    }
+
+    .carousel-btn:hover {
+        background: var(--brand, #14BCED);
+        color: #fff;
+        border-color: var(--brand, #14BCED);
+        box-shadow: 0 4px 12px rgba(20,188,237,0.3);
+    }
+
+    .nearby-scroll {
+        flex: 1;
+        scroll-snap-type: none;
+    }
 
     /* 사이드바 표시 */
     .sidebar {
@@ -1023,10 +1134,20 @@ onMounted(() => {
         padding: 28px 24px 20px;
     }
 
-    /* 데스크탑 5열 */
+    /* 데스크탑: 그리드로 복원 */
     .media-grid {
+        display: grid;
         grid-template-columns: repeat(3, 1fr);
         gap: 12px;
+        overflow: visible;
+        scroll-snap-type: none;
+        padding-bottom: 0;
+    }
+
+    .media-grid :deep(.media-card) {
+        width: auto;
+        flex-shrink: unset;
+        scroll-snap-align: none;
     }
 
     /* 멤버십 배너 */
