@@ -87,6 +87,61 @@
 
                     <!-- 콘텐츠 본문 -->
                     <div class="content-body">
+
+                        <!-- 내 근처 성지 -->
+                        <section class="section nearby-section">
+                            <div class="section-header">
+                                <h3 class="section-title">내 근처 성지</h3>
+                                <button
+                                    class="locate-btn"
+                                    :class="{ loading: locationStatus === 'loading' }"
+                                    :disabled="locationStatus === 'loading'"
+                                    @click="requestLocation"
+                                >
+                                    <ion-icon :name="locationStatus === 'granted' ? 'navigate' : 'navigate-outline'"/>
+                                    {{ locationStatus === 'loading' ? '위치 확인 중...' : locationStatus === 'granted' ? '새로고침' : '내 위치 찾기' }}
+                                </button>
+                            </div>
+
+                            <div v-if="locationStatus === 'idle'" class="nearby-empty">
+                                <ion-icon name="navigate-outline" class="empty-icon"/>
+                                <p>위치 권한을 허용하면 근처 성지를 볼 수 있어요</p>
+                            </div>
+                            <div v-else-if="locationStatus === 'denied'" class="nearby-empty nearby-denied">
+                                <ion-icon name="close-circle-outline" class="empty-icon"/>
+                                <p>위치 권한이 거부되었습니다. 브라우저 설정에서 허용해주세요.</p>
+                            </div>
+                            <div v-else-if="locationStatus === 'loading'" class="nearby-empty">
+                                <div class="locate-pulse"/>
+                                <p>위치를 확인하는 중...</p>
+                            </div>
+                            <div v-else-if="nearbyPlaces.length === 0" class="nearby-empty">
+                                <ion-icon name="location-outline" class="empty-icon"/>
+                                <p>근처 50km 이내에 성지가 없습니다</p>
+                            </div>
+                            <div v-else class="nearby-scroll">
+                                <div
+                                    v-for="item in nearbyPlaces"
+                                    :key="item.placeIdx"
+                                    class="nearby-card"
+                                    @click="onPlaceClick(item)"
+                                >
+                                    <div class="nearby-thumb">
+                                        <img v-if="item.placeImageUrl" :src="item.placeImageUrl" :alt="item.name"/>
+                                        <div v-else class="nearby-thumb-fallback">📍</div>
+                                    </div>
+                                    <div class="nearby-info">
+                                        <p class="nearby-name">{{ item.name }}</p>
+                                        <p class="nearby-address">{{ item.address }}</p>
+                                        <span class="nearby-dist">
+                                            <ion-icon name="navigate-outline"/>
+                                            {{ formatDist(item.distance) }}
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                        </section>
+
                         <!-- 콘텐츠 내부 래퍼 (데스크탑 2컬럼) -->
                         <div class="sections-wrap">
 
@@ -192,7 +247,8 @@ import {IonPage, IonContent, IonIcon, useIonRouter} from '@ionic/vue';
 import {addIcons} from 'ionicons';
 import {
     searchOutline, home, mapOutline, bookmarkOutline,
-    chevronForwardOutline, notificationsOutline, personOutline
+    chevronForwardOutline, notificationsOutline, personOutline,
+    navigateOutline, navigate, locationOutline, closeCircleOutline,
 } from 'ionicons/icons';
 import MapSection from '@/components/home/MapSection.vue';
 import MediaCard from '@/components/home/MediaCard.vue';
@@ -208,6 +264,10 @@ addIcons({
     'chevron-forward-outline': chevronForwardOutline,
     'notifications-outline': notificationsOutline,
     'person-outline': personOutline,
+    'navigate-outline': navigateOutline,
+    'navigate': navigate,
+    'location-outline': locationOutline,
+    'close-circle-outline': closeCircleOutline,
 });
 
 const router = useIonRouter();
@@ -238,6 +298,49 @@ function onContentClick(item: any) {
 
 function onPlaceClick(item: any) {
     router.push({ name: 'PlaceDetail', params: { id: item.placeIdx }, state: { place: item } });
+}
+
+// ── 위치 기반 근처 성지 ──
+type LocationStatus = 'idle' | 'loading' | 'granted' | 'denied';
+const locationStatus = ref<LocationStatus>('idle');
+const userLat = ref<number | null>(null);
+const userLng = ref<number | null>(null);
+
+function haversineKm(lat1: number, lng1: number, lat2: number, lng2: number) {
+    const R = 6371;
+    const dLat = (lat2 - lat1) * Math.PI / 180;
+    const dLng = (lng2 - lng1) * Math.PI / 180;
+    const a = Math.sin(dLat / 2) ** 2 +
+              Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * Math.sin(dLng / 2) ** 2;
+    return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+}
+
+const nearbyPlaces = computed(() => {
+    if (userLat.value === null || userLng.value === null) return [];
+    return mapPlaces.value
+        .filter(p => p.latitude && p.longitude)
+        .map(p => ({ ...p, distance: haversineKm(userLat.value!, userLng.value!, p.latitude, p.longitude) }))
+        .filter(p => p.distance <= 50)
+        .sort((a, b) => a.distance - b.distance)
+        .slice(0, 20);
+});
+
+function formatDist(km: number) {
+    return km < 1 ? `${Math.round(km * 1000)}m` : `${km.toFixed(1)}km`;
+}
+
+function requestLocation() {
+    if (!navigator.geolocation) { locationStatus.value = 'denied'; return; }
+    locationStatus.value = 'loading';
+    navigator.geolocation.getCurrentPosition(
+        (pos) => {
+            userLat.value = pos.coords.latitude;
+            userLng.value = pos.coords.longitude;
+            locationStatus.value = 'granted';
+        },
+        () => { locationStatus.value = 'denied'; },
+        { timeout: 10000 },
+    );
 }
 
 const popularContents = ref([]);
@@ -396,6 +499,124 @@ onMounted(() => {
     height: 32px;
     margin-top: 4px;
 }
+
+/* ── 내 근처 성지 ── */
+.nearby-section {
+    border-bottom: 1px solid #f3f4f6;
+}
+
+.locate-btn {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    padding: 6px 14px;
+    border-radius: 20px;
+    border: 1.5px solid var(--brand, #14BCED);
+    background: transparent;
+    color: var(--brand, #14BCED);
+    font-size: 12px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: background 0.15s, color 0.15s;
+    white-space: nowrap;
+}
+
+.locate-btn:hover:not(:disabled) {
+    background: var(--brand, #14BCED);
+    color: #fff;
+}
+
+.locate-btn:disabled { opacity: 0.6; cursor: default; }
+
+.locate-btn ion-icon { font-size: 14px; }
+
+.locate-btn.loading ion-icon {
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.nearby-empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    padding: 24px 0;
+    color: #9ca3af;
+}
+
+.nearby-empty p { font-size: 13px; margin: 0; text-align: center; }
+.nearby-denied { color: #ef4444; }
+.empty-icon { font-size: 32px; opacity: 0.5; }
+
+.locate-pulse {
+    width: 28px; height: 28px;
+    border-radius: 50%;
+    background: var(--brand, #14BCED);
+    opacity: 0.7;
+    animation: pulse 1.2s ease-in-out infinite;
+}
+
+.nearby-scroll {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.nearby-card {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px;
+    border-radius: 14px;
+    border: 1px solid #f3f4f6;
+    cursor: pointer;
+    transition: background 0.15s, border-color 0.15s;
+}
+
+.nearby-card:hover {
+    background: rgba(20, 188, 237, 0.05);
+    border-color: rgba(20, 188, 237, 0.2);
+}
+
+.nearby-thumb {
+    width: 60px; height: 60px;
+    flex-shrink: 0;
+    border-radius: 12px;
+    overflow: hidden;
+    background: #f3f4f6;
+    border: 1px solid #e5e7eb;
+    display: flex; align-items: center; justify-content: center;
+}
+
+.nearby-thumb img { width: 100%; height: 100%; object-fit: cover; }
+.nearby-thumb-fallback { font-size: 24px; }
+
+.nearby-info {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+}
+
+.nearby-name {
+    font-size: 13px; font-weight: 700; color: #1f2937;
+    margin: 0;
+    overflow: hidden; white-space: nowrap; text-overflow: ellipsis;
+}
+
+.nearby-address {
+    font-size: 11px; color: #6b7280; margin: 0;
+    overflow: hidden; white-space: nowrap; text-overflow: ellipsis;
+}
+
+.nearby-dist {
+    display: flex; align-items: center; gap: 3px;
+    font-size: 11px; font-weight: 700; color: var(--brand, #14BCED);
+}
+
+.nearby-dist ion-icon { font-size: 11px; }
 
 /* 섹션 래퍼: 모바일은 단순 스택 */
 .sections-wrap {
