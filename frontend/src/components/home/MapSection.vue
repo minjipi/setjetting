@@ -112,6 +112,7 @@ onMounted(async () => {
     mapInstance = new window.kakao.maps.Map(mapEl.value, {
       center,
       level: props.zoomLevel ?? 13,
+      maxLevel: 12,
     });
 
     loading.value = false;

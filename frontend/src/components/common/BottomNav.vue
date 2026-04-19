@@ -1,26 +1,34 @@
 <template>
     <div class="bottom-nav">
-        <button class="nav-btn" :class="{ active: active === 'home' }" @click="goHome()">
-            <ion-icon name="home"/>
-            <span>홈</span>
-        </button>
-        <button class="nav-btn" :class="{ active: active === 'map' }" @click="goMap()">
-            <ion-icon name="map-outline"/>
-            <span>지도</span>
-        </button>
-        <button class="nav-btn" :class="{ active: active === 'bookmark' }">
-            <ion-icon name="bookmark-outline"/>
-            <span>저장</span>
-        </button>
-        <button class="nav-btn" :class="{ active: active === 'profile' }" @click="goAuth">
-            <ion-icon name="person-outline"/>
-            <span>{{ isLoggedIn ? '프로필' : '로그인' }}</span>
-        </button>
+        <ion-button class="nav-btn" :class="{ active: active === 'home' }" fill="clear" router-link="/home" router-direction="none">
+            <div class="btn-inner">
+                <ion-icon name="home"/>
+                <span>홈</span>
+            </div>
+        </ion-button>
+        <ion-button class="nav-btn" :class="{ active: active === 'map' }" fill="clear" router-link="/map" router-direction="none">
+            <div class="btn-inner">
+                <ion-icon name="map-outline"/>
+                <span>지도</span>
+            </div>
+        </ion-button>
+        <ion-button class="nav-btn" :class="{ active: active === 'bookmark' }" fill="clear">
+            <div class="btn-inner">
+                <ion-icon name="bookmark-outline"/>
+                <span>저장</span>
+            </div>
+        </ion-button>
+        <ion-button class="nav-btn" :class="{ active: active === 'profile' }" fill="clear" :router-link="isLoggedIn ? '/mypage' : '/auth'" router-direction="none">
+            <div class="btn-inner">
+                <ion-icon name="person-outline"/>
+                <span>{{ isLoggedIn ? '프로필' : '로그인' }}</span>
+            </div>
+        </ion-button>
     </div>
 </template>
 
 <script setup lang="ts">
-import { IonIcon, useIonRouter } from '@ionic/vue';
+import { IonIcon, IonButton } from '@ionic/vue';
 import { addIcons } from 'ionicons';
 import { home, mapOutline, bookmarkOutline, personOutline } from 'ionicons/icons';
 import { useAuth } from '@/composables/useAuth';
@@ -29,12 +37,7 @@ addIcons({ 'home': home, 'map-outline': mapOutline, 'bookmark-outline': bookmark
 
 defineProps<{ active?: 'home' | 'map' | 'bookmark' | 'profile' }>();
 
-const router = useIonRouter();
 const { isLoggedIn } = useAuth();
-
-function goHome() { router.push('/home'); }
-function goMap() { router.push('/map'); }
-function goAuth() { router.push(isLoggedIn.value ? '/mypage' : '/auth'); }
 </script>
 
 <style scoped>
@@ -56,26 +59,30 @@ function goAuth() { router.push(isLoggedIn.value ? '/mypage' : '/auth'); }
 
 .nav-btn {
     flex: 1;
-    background: none;
-    border: none;
+    --color: var(--text-muted);
+    --padding-start: 0;
+    --padding-end: 0;
+    --padding-top: 0;
+    --padding-bottom: 0;
+    margin: 0;
+    height: 100%;
+}
+
+.nav-btn.active {
+    --color: var(--brand);
+}
+
+.btn-inner {
     display: flex;
     flex-direction: column;
     align-items: center;
     gap: 3px;
-    color: var(--text-muted);
     font-size: 20px;
-    cursor: pointer;
-    padding: 6px 0;
-    transition: color 0.2s;
 }
 
-.nav-btn span {
+.btn-inner span {
     font-size: 10px;
     font-weight: 600;
-}
-
-.nav-btn.active {
-    color: var(--brand);
 }
 
 @media (min-width: 1024px) {
