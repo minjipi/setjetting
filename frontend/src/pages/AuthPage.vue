@@ -54,6 +54,9 @@
 
         <!-- ── 우측 폼 패널 ── -->
         <div class="form-panel">
+          <button class="close-btn" @click="goHome()">
+            <ion-icon name="close-outline"/>
+          </button>
 
           <!-- 모바일에서만 표시되는 로고 헤더 -->
           <div class="mobile-brand-header">
@@ -108,11 +111,18 @@
 
 <script setup lang="ts">
 import { ref } from 'vue';
-import { IonPage, IonContent } from '@ionic/vue';
+import { IonPage, IonContent, IonIcon, useIonRouter } from '@ionic/vue';
+import { addIcons } from 'ionicons';
+import { closeOutline } from 'ionicons/icons';
 import LoginForm from '@/components/auth/LoginForm.vue';
 import SignupForm from '@/components/auth/SignupForm.vue';
 
+addIcons({ 'close-outline': closeOutline });
+
+const router = useIonRouter();
 const activeTab = ref<'login' | 'signup'>('login');
+
+function goHome() { router.push('/home'); }
 
 function onForgotPassword() {
   // TODO: 비밀번호 찾기 페이지로 이동
@@ -152,6 +162,31 @@ function onSignupSuccess() {
   padding: 40px 20px 32px;
   box-sizing: border-box;
   min-height: 100%;
+  position: relative;
+}
+
+.close-btn {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: #f3f4f6;
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+  color: #6b7280;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+  z-index: 10;
+}
+
+.close-btn:hover {
+  background: #e5e7eb;
+  color: #111;
 }
 
 /* 모바일 로고 헤더 */

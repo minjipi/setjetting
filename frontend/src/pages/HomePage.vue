@@ -18,7 +18,7 @@
                             <ion-icon name="home"/>
                             <span>홈</span>
                         </button>
-                        <button class="sidebar-nav-btn">
+                        <button class="sidebar-nav-btn" @click="goMap">
                             <ion-icon name="map-outline"/>
                             <span>지도</span>
                         </button>
@@ -83,7 +83,7 @@
                     </div>
 
                     <!-- 카카오 지도 -->
-                    <MapSection/>
+                    <MapSection :map-height="homeMapHeight" :places="mapPlaces"/>
 
                     <!-- 콘텐츠 본문 -->
                     <div class="content-body">
@@ -211,17 +211,19 @@ addIcons({
 });
 
 const router = useIonRouter();
-const {isLoggedIn, user} = useAuth();
+const { isLoggedIn, user } = useAuth();
 
 const userInitial = computed(() => user.value?.name?.charAt(0).toUpperCase() ?? 'U');
 
-function goAuth() {
-    router.push(isLoggedIn.value ? '/mypage' : '/auth');
-}
+function goAuth() { router.push(isLoggedIn.value ? '/mypage' : '/auth'); }
+function goProfile() { router.push('/mypage'); }
+function goMap() { router.push('/map'); }
 
-function goProfile() {
-    router.push('/mypage');
-}
+const homeMapHeight = computed(() => {
+    if (window.innerWidth >= 1024) return '440px';
+    if (window.innerWidth >= 768) return '360px';
+    return '260px';
+});
 
 const searchQuery = ref('');
 const searchInputEl = ref<HTMLInputElement | null>(null);
@@ -240,6 +242,7 @@ function onPlaceClick(item: any) {
 
 const popularContents = ref([]);
 const popularPlace = ref([]);
+const mapPlaces = ref([]);
 
 async function loadContents() {
     const data = await contentApi.getList();
@@ -251,6 +254,7 @@ async function loadContents() {
 async function loadPlaces() {
     const data = await placeApi.getList();
     if (Array.isArray(data)) {
+        mapPlaces.value = data;
         popularPlace.value = data.map(p => ({
             placeIdx: p.placeIdx,
             title: p.name,

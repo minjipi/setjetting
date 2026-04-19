@@ -16,6 +16,8 @@ import java.util.stream.Collectors;
 @AllArgsConstructor
 @Schema(description = "작품 상세 페이지 응답")
 public class ContentDetailRes {
+    @Schema(description = "작품 IDX", example = "1")
+    private Long idx;
 
     @Schema(description = "작품 제목", example = "너의 이름은.")
     private String title;
@@ -37,6 +39,7 @@ public class ContentDetailRes {
 
     public static ContentDetailRes of(Content content) {
         return ContentDetailRes.builder()
+                .idx(content.getIdx())
                 .title(content.getTitle())
                 .englishTitle(content.getEnglishTitle())
                 .posterImageUrl(content.getPosterImageUrl())
