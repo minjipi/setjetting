@@ -233,7 +233,7 @@
                 <ion-icon name="home"/>
                 <span>홈</span>
             </button>
-            <button class="nav-btn">
+            <button class="nav-btn" @click="goMap">
                 <ion-icon name="map-outline"/>
                 <span>지도</span>
             </button>
