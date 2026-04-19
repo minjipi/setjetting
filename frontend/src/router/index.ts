@@ -6,6 +6,7 @@ import MyPage from '@/pages/MyPage.vue';
 import CameraPage from '@/pages/CameraPage.vue';
 import ContentDetailPage from '@/pages/ContentDetailPage.vue';
 import PlaceDetailPage from '@/pages/PlaceDetailPage.vue';
+import MapPage from '@/pages/MapPage.vue';
 
 const routes: Array<RouteRecordRaw> = [
   {
@@ -33,6 +34,11 @@ const routes: Array<RouteRecordRaw> = [
     name: 'Camera',
     component: CameraPage,
     meta: { requiresAuth: true },
+  },
+  {
+    path: '/map',
+    name: 'Map',
+    component: MapPage,
   },
   {
     path: '/contents/:id',
