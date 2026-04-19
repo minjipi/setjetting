@@ -51,24 +51,24 @@
                         <h3 class="section-heading">
                             <ion-icon name="film-outline" class="section-icon"/>
                             관련 작품
-                            <span class="count-badge">{{ allContents.length }}</span>
                         </h3>
-                        <div class="content-grid">
-                            <div
-                                v-for="item in allContents"
-                                :key="item.contentIdx"
-                                class="content-card"
-                                @click="router.push({ name: 'ContentDetail', params: { id: item.contentIdx }, state: { content: item } })"
-                            >
-                                <div class="content-poster">
-                                    <img v-if="item.posterImageUrl" :src="item.posterImageUrl" :alt="item.title" class="poster-img"/>
-                                    <div v-else class="poster-placeholder">🎬</div>
-                                    <span class="match-badge">
-                                        <ion-icon name="checkmark-circle-outline"/>
-                                        성지 매칭
-                                    </span>
-                                </div>
-                                <p class="content-name">{{ item.title }}</p>
+                        <div v-if="parentContent" class="content-card" @click="router.push({ name: 'ContentDetail', params: { id: parentContent.contentIdx } })">
+                            <div class="content-poster">
+                                <img v-if="parentContent.posterImageUrl" :src="parentContent.posterImageUrl" :alt="parentContent.title" class="poster-img"/>
+                                <div v-else class="poster-placeholder">🎬</div>
+                                <span class="match-badge">
+                                    <ion-icon name="checkmark-circle-outline"/>
+                                    성지 매칭
+                                </span>
+                            </div>
+                            <div class="content-meta">
+                                <p class="content-name">{{ parentContent.title }}</p>
+                                <p class="content-english">{{ parentContent.englishTitle }}</p>
+                                <p class="content-desc">{{ parentContent.description }}</p>
+                                <span class="place-count">
+                                    <ion-icon name="location-outline"/>
+                                    성지 {{ parentContent.placeCount }}곳
+                                </span>
                             </div>
                         </div>
                     </section>
@@ -88,7 +88,6 @@ import {
     arrowBackOutline, locationOutline, filmOutline,
     navigateOutline, checkmarkCircleOutline
 } from 'ionicons/icons';
-import { contentsApi } from '@/api/contentsApi';
 import { placeApi } from '@/api/placeApi';
 import MapSection from "@/components/home/MapSection.vue";
 
@@ -104,23 +103,18 @@ const router = useIonRouter();
 const route = useRoute();
 
 const placeId = computed(() => Number(route.params.id));
-const place = ref<any>(history.state?.place ?? null);
-const allContents = ref<any[]>([]);
+const place = ref<any>(null);
+const parentContent = ref<any>(null);
 
 function goBack() {
     router.back();
 }
 
 async function loadData() {
-    const [contents, placeList] = await Promise.all([
-        contentsApi.getList(),
-        placeApi.getList(),
-    ]);
-    if (Array.isArray(contents)) {
-        allContents.value = contents;
-    }
-    if (Array.isArray(placeList) && !place.value) {
-        place.value = placeList.find((p: any) => p.placeIdx === placeId.value) ?? null;
+    const detail = await placeApi.getDetail(placeId.value);
+    if (detail) {
+        parentContent.value = detail;
+        place.value = detail.places?.find((p: any) => p.placeIdx === placeId.value) ?? detail.places?.[0] ?? null;
     }
 }
 
@@ -322,22 +316,15 @@ onMounted(() => {
     padding: 20px 16px;
 }
 
-.content-grid {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 10px;
-}
-
 .content-card {
+    display: flex;
+    gap: 16px;
     cursor: pointer;
-    transition: transform 0.2s;
-}
-
-.content-card:hover {
-    transform: translateY(-2px);
 }
 
 .content-poster {
+    width: 100px;
+    flex-shrink: 0;
     aspect-ratio: 2 / 3;
     border-radius: 10px;
     overflow: hidden;
@@ -345,11 +332,6 @@ onMounted(() => {
     border: 1px solid #e5e7eb;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
     position: relative;
-    transition: box-shadow 0.2s;
-}
-
-.content-card:hover .content-poster {
-    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.14);
 }
 
 .content-poster .poster-img {
@@ -394,16 +376,48 @@ onMounted(() => {
     font-size: 28px;
 }
 
+.content-meta {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    padding-top: 2px;
+}
+
 .content-name {
-    margin: 6px 0 0;
-    font-size: 11px;
-    font-weight: 600;
+    font-size: 14px;
+    font-weight: 700;
     color: #1f2937;
+    margin: 0;
     line-height: 1.4;
-    overflow: hidden;
+}
+
+.content-english {
+    font-size: 12px;
+    color: #6b7280;
+    margin: 0;
+}
+
+.content-desc {
+    font-size: 12px;
+    color: #4b5563;
+    margin: 0;
+    line-height: 1.6;
     display: -webkit-box;
-    -webkit-line-clamp: 2;
+    -webkit-line-clamp: 5;
     -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.place-count {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--brand, #14BCED);
+    margin-top: 4px;
 }
 
 /* ── 데스크탑 ── */

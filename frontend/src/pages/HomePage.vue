@@ -197,7 +197,7 @@ import {
 import MapSection from '@/components/home/MapSection.vue';
 import MediaCard from '@/components/home/MediaCard.vue';
 import {useAuth} from '@/composables/useAuth';
-import { contentsApi } from '@/api/contentsApi';
+import { contentApi } from '@/api/contentApi';
 import { placeApi } from '@/api/placeApi';
 
 addIcons({
@@ -242,7 +242,7 @@ const popularContents = ref([]);
 const popularPlace = ref([]);
 
 async function loadContents() {
-    const data = await contentsApi.getList();
+    const data = await contentApi.getList();
     if (Array.isArray(data)) {
         popularContents.value = data;
     }
