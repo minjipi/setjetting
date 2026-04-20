@@ -3,34 +3,7 @@
     <ion-content :fullscreen="true" class="my-content">
       <div class="page-layout">
 
-        <!-- ── 데스크탑 사이드바 ── -->
-        <aside class="sidebar">
-          <div class="sidebar-logo">
-            <svg width="34" height="34" viewBox="0 0 30 30" xmlns="http://www.w3.org/2000/svg">
-              <circle cx="15" cy="15" r="15" fill="#14BCED"/>
-              <path d="M15 7 L12 15 L18 15 L11 23 L17 16 L13 16 Z" fill="#fff"/>
-            </svg>
-            <span class="sidebar-logo-text">성지맵</span>
-          </div>
-          <nav class="sidebar-nav">
-            <button class="sidebar-nav-btn" @click="goHome">
-              <ion-icon name="home-outline"/>
-              <span>홈</span>
-            </button>
-            <button class="sidebar-nav-btn" @click="goMap">
-              <ion-icon name="map-outline"/>
-              <span>지도</span>
-            </button>
-            <button class="sidebar-nav-btn">
-              <ion-icon name="bookmark-outline"/>
-              <span>저장</span>
-            </button>
-            <button class="sidebar-nav-btn active">
-              <ion-icon name="person"/>
-              <span>마이페이지</span>
-            </button>
-          </nav>
-        </aside>
+        <Sidebar active="profile"/>
 
         <!-- ── 메인 콘텐츠 ── -->
         <div class="main-wrap">
@@ -183,9 +156,9 @@
         <ion-icon name="map-outline"/>
         <span>지도</span>
       </button>
-      <button class="nav-btn">
-        <ion-icon name="bookmark-outline"/>
-        <span>저장</span>
+      <button class="nav-btn" @click="goSns">
+        <ion-icon name="people-outline"/>
+        <span>SNS</span>
       </button>
       <button class="nav-btn active">
         <ion-icon name="person"/>
@@ -200,17 +173,18 @@ import { ref, computed } from 'vue';
 import { IonPage, IonContent, IonIcon, useIonRouter } from '@ionic/vue';
 import { addIcons } from 'ionicons';
 import {
-  homeOutline, mapOutline, bookmarkOutline, person,
+  homeOutline, mapOutline, peopleOutline, person,
   locationOutline, imagesOutline, settingsOutline,
   arrowBackOutline, cameraOutline, logOutOutline, personOutline,
 } from 'ionicons/icons';
 import { useAuth } from '@/composables/useAuth';
 import VisitedSpotCard from '@/components/mypage/VisitedSpotCard.vue';
+import Sidebar from '@/components/common/Sidebar.vue';
 
 addIcons({
   'home-outline': homeOutline,
   'map-outline': mapOutline,
-  'bookmark-outline': bookmarkOutline,
+  'people-outline': peopleOutline,
   'person': person,
   'person-outline': personOutline,
   'location-outline': locationOutline,
@@ -230,6 +204,7 @@ const userInitial = computed(() => user.value?.name?.charAt(0).toUpperCase() ?? 
 
 function goHome() { router.push('/home'); }
 function goMap() { router.push('/map'); }
+function goSns() { router.push('/sns'); }
 
 async function onLogout() {
   await logout();
@@ -321,11 +296,6 @@ const savedCount = computed(() => savedSpots.value.length);
 .page-layout {
   display: flex;
   min-height: 100%;
-}
-
-/* ── 사이드바 ── */
-.sidebar {
-  display: none;
 }
 
 /* ── 메인 ── */
@@ -693,73 +663,6 @@ const savedCount = computed(() => savedSpots.value.length);
 
 /* ── 데스크탑 (≥1024px) ── */
 @media (min-width: 1024px) {
-  .sidebar {
-    display: flex;
-    flex-direction: column;
-    width: 220px;
-    flex-shrink: 0;
-    background: #fff;
-    border-right: 1px solid rgba(20, 188, 237, 0.1);
-    padding: 20px 0;
-    position: sticky;
-    top: 0;
-    height: 100vh;
-  }
-
-  .sidebar-logo {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    padding: 0 20px 24px;
-    border-bottom: 1px solid rgba(20, 188, 237, 0.1);
-    margin-bottom: 12px;
-  }
-
-  .sidebar-logo-text {
-    font-size: 18px;
-    font-weight: 800;
-    color: #111827;
-  }
-
-  .sidebar-nav {
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
-    padding: 0 12px;
-    flex: 1;
-  }
-
-  .sidebar-nav-btn {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    padding: 10px 12px;
-    border: none;
-    background: none;
-    border-radius: 10px;
-    font-size: 14px;
-    font-weight: 600;
-    color: #6b7280;
-    cursor: pointer;
-    text-align: left;
-    transition: background 0.15s, color 0.15s;
-  }
-
-  .sidebar-nav-btn ion-icon {
-    font-size: 20px;
-    flex-shrink: 0;
-  }
-
-  .sidebar-nav-btn:hover {
-    background: #f0f9fd;
-    color: #14BCED;
-  }
-
-  .sidebar-nav-btn.active {
-    background: #e0f7fd;
-    color: #14BCED;
-  }
-
   .spots-grid {
     grid-template-columns: repeat(4, 1fr);
   }
