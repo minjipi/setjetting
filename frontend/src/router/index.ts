@@ -4,8 +4,6 @@ import AuthPage from '@/pages/AuthPage.vue';
 import HomePage from '@/pages/HomePage.vue';
 import MyPage from '@/pages/MyPage.vue';
 import CameraPage from '@/pages/CameraPage.vue';
-import ContentDetailPage from '@/pages/ContentDetailPage.vue';
-import PlaceDetailPage from '@/pages/PlaceDetailPage.vue';
 import MapPage from '@/pages/MapPage.vue';
 import SnsPage from '@/pages/SnsPage.vue';
 
@@ -48,13 +46,11 @@ const routes: Array<RouteRecordRaw> = [
   },
   {
     path: '/contents/:id',
-    name: 'ContentDetail',
-    component: ContentDetailPage,
+    redirect: (to) => ({ path: '/map', query: { contentId: to.params.id } }),
   },
   {
     path: '/places/:id',
-    name: 'PlaceDetail',
-    component: PlaceDetailPage,
+    redirect: (to) => ({ path: '/map', query: { placeId: to.params.id } }),
   },
 ];
 

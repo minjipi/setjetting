@@ -27,31 +27,35 @@ export function useKakaoMap() {
     return loadPromise;
   }
 
-  function createMarker(
-    map: any,
-    lat: number,
-    lng: number,
-    title: string
-  ) {
-    const position = new window.kakao.maps.LatLng(lat, lng);
-
-    // Custom brand-colored SVG marker
-    const svgContent = `
-      <svg xmlns="http://www.w3.org/2000/svg" width="28" height="36" viewBox="0 0 28 36">
-        <path d="M14 0C6.27 0 0 6.27 0 14c0 9.33 14 22 14 22s14-12.67 14-22C28 6.27 21.73 0 14 0z"
-              fill="#14BCED" stroke="white" stroke-width="1.5"/>
-        <circle cx="14" cy="14" r="5" fill="white"/>
-      </svg>
-    `;
-    const markerImage = new window.kakao.maps.MarkerImage(
-      `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svgContent)}`,
-      new window.kakao.maps.Size(28, 36),
-      { offset: new window.kakao.maps.Point(14, 36) }
+  function buildMarkerImage(color: string, size: [number, number]) {
+    const [w, h] = size;
+    const cx = w / 2, cy = w / 2, r = w * 0.18;
+    const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="${h}" viewBox="0 0 ${w} ${h}">
+      <path d="M${cx} 0C${cx * 0.448} 0 0 ${cx * 0.448} 0 ${cx}c0 ${cx * 0.666} ${cx} ${h - cx} ${cx} ${h - cx}s${cx}-${(h - cx) * 0.906} ${cx}-${h - cx}C${w} ${cx * 0.448} ${w - cx * 0.448} 0 ${cx} 0z"
+            fill="${color}" stroke="white" stroke-width="1.5"/>
+      <circle cx="${cx}" cy="${cy}" r="${r}" fill="white"/>
+    </svg>`;
+    return new window.kakao.maps.MarkerImage(
+      `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}`,
+      new window.kakao.maps.Size(w, h),
+      { offset: new window.kakao.maps.Point(cx, h) }
     );
+  }
 
-    const marker = new window.kakao.maps.Marker({ position, map, title, image: markerImage });
+  function createMarker(map: any, lat: number, lng: number, title: string) {
+    const position = new window.kakao.maps.LatLng(lat, lng);
+    const image = buildMarkerImage('#14BCED', [28, 36]);
+    const marker = new window.kakao.maps.Marker({ position, map, title, image });
     return marker;
   }
 
-  return { load, createMarker };
+  function createActiveMarkerImage() {
+    return buildMarkerImage('#f59e0b', [36, 46]);
+  }
+
+  function createNormalMarkerImage() {
+    return buildMarkerImage('#14BCED', [28, 36]);
+  }
+
+  return { load, createMarker, createActiveMarkerImage, createNormalMarkerImage };
 }

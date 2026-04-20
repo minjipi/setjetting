@@ -1,12 +1,17 @@
 <template>
     <div class="top-bar">
-        <div class="logo-wrap">
+        <button v-if="title" class="back-btn" @click="$emit('back')" aria-label="뒤로">
+            <ion-icon name="arrow-back-outline"/>
+        </button>
+        <div v-else class="logo-wrap">
             <svg width="30" height="30" viewBox="0 0 30 30" xmlns="http://www.w3.org/2000/svg">
                 <circle cx="15" cy="15" r="15" fill="#14BCED"/>
                 <path d="M15 7 L12 15 L18 15 L11 23 L17 16 L13 16 Z" fill="#fff"/>
-            </svg></div>
+            </svg>
+        </div>
 
-        <div class="search-bar" @click="inputEl?.focus()">
+        <h2 v-if="title" class="detail-title">{{ title }}</h2>
+        <div v-else class="search-bar" @click="inputEl?.focus()">
             <ion-icon name="search-outline" class="search-icon"/>
             <input
                 ref="inputEl"
@@ -38,20 +43,22 @@
 import { ref, computed } from 'vue';
 import { IonIcon, useIonRouter } from '@ionic/vue';
 import { addIcons } from 'ionicons';
-import { searchOutline, notificationsOutline } from 'ionicons/icons';
+import { searchOutline, notificationsOutline, arrowBackOutline } from 'ionicons/icons';
 import { useAuth } from '@/composables/useAuth';
 
-addIcons({ 'search-outline': searchOutline, 'notifications-outline': notificationsOutline });
+addIcons({ 'search-outline': searchOutline, 'notifications-outline': notificationsOutline, 'arrow-back-outline': arrowBackOutline });
 
 withDefaults(defineProps<{
     modelValue?: string;
     placeholder?: string;
+    title?: string;
 }>(), {
     modelValue: '',
     placeholder: '작품명, 장소 검색...',
+    title: '',
 });
 
-defineEmits<{ 'update:modelValue': [value: string] }>();
+defineEmits<{ 'update:modelValue': [value: string]; 'back': [] }>();
 
 const inputEl = ref<HTMLInputElement | null>(null);
 const router = useIonRouter();
@@ -70,6 +77,35 @@ const userInitial = computed(() => user.value?.name?.charAt(0).toUpperCase() ?? 
     padding: 12px 16px;
     background: #fff;
     border-bottom: 1px solid rgba(20, 188, 237, 0.1);
+}
+
+.back-btn {
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    background: #f3f4f6;
+    border: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    color: #374151;
+    cursor: pointer;
+    flex-shrink: 0;
+    transition: background 0.15s;
+}
+
+.back-btn:hover { background: #e5e7eb; }
+
+.detail-title {
+    flex: 1;
+    font-size: 15px;
+    font-weight: 700;
+    color: #1f2937;
+    margin: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
 .logo-wrap {

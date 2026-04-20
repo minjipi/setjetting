@@ -107,6 +107,8 @@ public class SecurityConfig {
                         .requestMatchers(POST, "/community/scrap/*").authenticated()
                         .requestMatchers(POST, "/community/scrap/*/toggle").authenticated()
                         .requestMatchers(DELETE, "/community/scrap/*").authenticated()
+                        .requestMatchers(POST, "/bookmark/place/*").authenticated()
+                        .requestMatchers(GET, "/bookmark/places").authenticated()
                         .requestMatchers(POST, "/user/logout/all").authenticated()
                         .requestMatchers(PUT, "/user/password/update").authenticated()
                         .requestMatchers(GET, "/user/profile", "/user/myreview", "/user/ordered", "/user/myquestion", "/user/mypost").authenticated()

@@ -224,12 +224,12 @@ const searchQuery = ref('');
 
 function onContentClick(item: any) {
     trendApi.recordContentActivity(item.contentIdx, 'VIEW');
-    router.push({ name: 'ContentDetail', params: { id: item.contentIdx }, state: { content: item } });
+    router.push({ name: 'Map', query: { contentId: item.contentIdx } });
 }
 
 function onPlaceClick(item: any) {
     trendApi.recordPlaceActivity(item.placeIdx, 'VIEW');
-    router.push({ name: 'PlaceDetail', params: { id: item.placeIdx }, state: { place: item } });
+    router.push({ name: 'Map', query: { placeId: item.placeIdx } });
 }
 
 // ── 위치 기반 근처 성지 ──
