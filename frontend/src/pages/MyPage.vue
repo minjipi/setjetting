@@ -17,7 +17,7 @@
               <ion-icon name="home-outline"/>
               <span>홈</span>
             </button>
-            <button class="sidebar-nav-btn">
+            <button class="sidebar-nav-btn" @click="goMap">
               <ion-icon name="map-outline"/>
               <span>지도</span>
             </button>
@@ -179,7 +179,7 @@
         <ion-icon name="home-outline"/>
         <span>홈</span>
       </button>
-      <button class="nav-btn">
+      <button class="nav-btn" @click="goMap">
         <ion-icon name="map-outline"/>
         <span>지도</span>
       </button>
@@ -229,6 +229,7 @@ const activeTab = ref<'spots' | 'photos' | 'saved'>('spots');
 const userInitial = computed(() => user.value?.name?.charAt(0).toUpperCase() ?? 'U');
 
 function goHome() { router.push('/home'); }
+function goMap() { router.push('/map'); }
 
 async function onLogout() {
   await logout();

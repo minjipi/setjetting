@@ -6,10 +6,17 @@ const $axios = axios.create({
   headers: { 'Content-Type': 'application/json' },
 });
 
+let isRefreshing = false;
+let pendingQueue = [];
+
+function flushQueue(error) {
+  pendingQueue.forEach(({ resolve, reject }) => error ? reject(error) : resolve());
+  pendingQueue = [];
+}
+
 $axios.interceptors.response.use(
   (response) => {
     const data = response.data;
-    // HTTP 200이지만 백엔드 응답 isSuccess가 false인 경우
     if (data !== null && typeof data === 'object' && 'isSuccess' in data && !data.isSuccess) {
       const error = new Error(data.message || '오류가 발생했습니다.');
       error.code = data.code;
@@ -18,14 +25,47 @@ $axios.interceptors.response.use(
     }
     return response;
   },
-  (error) => {
+  async (error) => {
+    const original = error.config;
+
+    // 401이고, 재시도가 아니고, refresh 엔드포인트 자체가 아닐 때만 갱신 시도
+    if (
+      error.response?.status === 401 &&
+      !original._retry &&
+      !original.url?.includes('/user/token/refresh')
+    ) {
+      if (isRefreshing) {
+        // 이미 갱신 중이면 완료를 기다렸다가 원본 요청 재시도
+        return new Promise((resolve, reject) => {
+          pendingQueue.push({ resolve, reject });
+        })
+          .then(() => $axios(original))
+          .catch((e) => Promise.reject(e));
+      }
+
+      original._retry = true;
+      isRefreshing = true;
+
+      try {
+        await $axios.get('/user/token/refresh');
+        flushQueue(null);
+        return $axios(original);
+      } catch (refreshError) {
+        flushQueue(refreshError);
+        // 리프레시 토큰도 만료 → 로그아웃 처리
+        localStorage.removeItem('sj_user');
+        window.location.href = '/auth';
+        return Promise.reject(refreshError);
+      } finally {
+        isRefreshing = false;
+      }
+    }
+
     const data = {};
     if (error.response) {
-      // 요청 전송 성공, 응답 수신 성공(2xx 외 상태 코드)
       Object.assign(data, error.response.data);
       data.errorMessage = error.response.data?.message;
     } else {
-      // 요청 전송 성공, 응답 수신 실패 또는 요청 설정 중 문제 발생
       data.code = error.code;
       data.errorMessage = error.message;
     }
