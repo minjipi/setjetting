@@ -1,5 +1,6 @@
-package com.setjetting.api.domain.place.model;
+package com.setjetting.api.domain.place.model.dto;
 
+import com.setjetting.api.domain.place.model.entity.Place;
 import lombok.*;
 
 @Getter
