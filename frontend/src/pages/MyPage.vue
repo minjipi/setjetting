@@ -128,14 +128,81 @@
                 <p class="empty-desc">마음에 드는 성지를 저장해두세요</p>
                 <button class="empty-action-btn" @click="goHome">성지 탐색하기</button>
               </div>
-              <div v-else class="spots-grid">
-                <VisitedSpotCard
-                  v-for="spot in savedSpots"
-                  :key="spot.id"
-                  :spot="spot"
-                  @click="onSpotClick"
-                />
-              </div>
+              <template v-else>
+                <!-- 보기 모드 토글 -->
+                <div class="view-toggle">
+                  <button
+                    class="vt-btn"
+                    :class="{ active: !groupByContent }"
+                    @click="groupByContent = false"
+                  >
+                    <ion-icon name="grid-outline"/>
+                    전체
+                  </button>
+                  <button
+                    class="vt-btn"
+                    :class="{ active: groupByContent }"
+                    @click="groupByContent = true"
+                  >
+                    <ion-icon name="albums-outline"/>
+                    작품별
+                  </button>
+                </div>
+
+                <!-- 전체 그리드 -->
+                <div v-if="!groupByContent" class="spots-grid">
+                  <VisitedSpotCard
+                    v-for="spot in savedSpots"
+                    :key="spot.id"
+                    :spot="spot"
+                    @click="onSpotClick"
+                  />
+                </div>
+
+                <!-- 작품별 그룹 -->
+                <div v-else class="content-groups">
+                  <div
+                    v-for="group in groupedSaved"
+                    :key="group.contentIdx"
+                    class="content-group"
+                  >
+                    <!-- 작품 헤더 -->
+                    <div
+                      class="group-header"
+                      @click="router.push({ name: 'Map', query: { contentId: group.contentIdx } })"
+                    >
+                      <div class="group-poster">
+                        <img v-if="group.posterImageUrl" :src="group.posterImageUrl" :alt="group.contentTitle"/>
+                        <div v-else class="group-poster-ph">🎬</div>
+                      </div>
+                      <div class="group-info">
+                        <span class="group-type-badge">{{ group.contentType }}</span>
+                        <p class="group-title">{{ group.contentTitle }}</p>
+                        <p class="group-count">
+                          <ion-icon name="bookmark-outline"/>
+                          성지 {{ group.places.length }}곳 저장됨
+                        </p>
+                      </div>
+                      <ion-icon name="chevron-forward-outline" class="group-arrow"/>
+                    </div>
+
+                    <!-- 성지 가로 스크롤 -->
+                    <div class="group-places">
+                      <div
+                        v-for="place in group.places"
+                        :key="place.id"
+                        class="gp-card"
+                        @click="router.push({ name: 'Map', query: { placeId: place.id } })"
+                      >
+                        <div class="gp-thumb" :style="{ background: place.gradient }">
+                          <span class="gp-emoji">📍</span>
+                        </div>
+                        <p class="gp-name">{{ place.spotName }}</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </template>
             </div>
 
           </div>
@@ -169,17 +236,19 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue';
-import { IonPage, IonContent, IonIcon, useIonRouter } from '@ionic/vue';
+import { ref, computed, onMounted } from 'vue';
+import { IonPage, IonContent, IonIcon, useIonRouter, onIonViewWillEnter } from '@ionic/vue';
 import { addIcons } from 'ionicons';
 import {
   homeOutline, mapOutline, peopleOutline, person,
   locationOutline, imagesOutline, settingsOutline,
   arrowBackOutline, cameraOutline, logOutOutline, personOutline,
+  gridOutline, albumsOutline, bookmarkOutline, chevronForwardOutline,
 } from 'ionicons/icons';
 import { useAuth } from '@/composables/useAuth';
 import VisitedSpotCard from '@/components/mypage/VisitedSpotCard.vue';
 import Sidebar from '@/components/common/Sidebar.vue';
+import { bookmarkApi } from '@/api/bookmarkApi';
 
 addIcons({
   'home-outline': homeOutline,
@@ -193,6 +262,10 @@ addIcons({
   'arrow-back-outline': arrowBackOutline,
   'camera-outline': cameraOutline,
   'log-out-outline': logOutOutline,
+  'grid-outline': gridOutline,
+  'albums-outline': albumsOutline,
+  'bookmark-outline': bookmarkOutline,
+  'chevron-forward-outline': chevronForwardOutline,
 });
 
 const router = useIonRouter();
@@ -212,7 +285,7 @@ async function onLogout() {
 }
 
 function onSpotClick(spot: any) {
-  router.push(`/camera/${spot.id}`);
+  router.push({ name: 'Map', query: { placeId: spot.id } });
 }
 
 function onPhotoClick(_photo: any) {
@@ -253,28 +326,55 @@ const visitedSpots = ref([
   },
 ]);
 
-const savedSpots = ref([
-  {
-    id: 4,
-    mediaTitle: '슬램덩크',
-    mediaType: '애니',
-    spotName: '가마쿠라 고코마에역',
+const rawBookmarks = ref<any[]>([]);
+const savedSpots = ref<any[]>([]);
+const groupByContent = ref(false);
+
+const contentTypeGradients: Record<string, string> = {
+  DRAMA: 'linear-gradient(145deg,#e0f2fe,#bae6fd)',
+  MOVIE: 'linear-gradient(145deg,#fef9c3,#fde68a)',
+  ANIME: 'linear-gradient(145deg,#fce7f3,#fbcfe8)',
+  MUSIC_VIDEO: 'linear-gradient(145deg,#f0fdf4,#bbf7d0)',
+};
+
+function mapBookmarkToSpot(b: any) {
+  return {
+    id: b.placeIdx,
+    mediaTitle: b.contentTitle ?? '',
+    mediaType: b.contentType ?? '',
+    spotName: b.name ?? '',
     visitedAt: '',
-    emoji: '🏀',
-    gradient: 'linear-gradient(145deg,#fff7ed,#fed7aa)',
+    emoji: '📍',
+    gradient: contentTypeGradients[b.contentType] ?? 'linear-gradient(145deg,#f1f5f9,#e2e8f0)',
     photoCount: 0,
-  },
-  {
-    id: 5,
-    mediaTitle: '원령공주',
-    mediaType: '영화',
-    spotName: '야쿠시마 원시림',
-    visitedAt: '',
-    emoji: '🌲',
-    gradient: 'linear-gradient(145deg,#f0fdf4,#86efac)',
-    photoCount: 0,
-  },
-]);
+  };
+}
+
+const groupedSaved = computed(() => {
+  const map = new Map<number, any>();
+  rawBookmarks.value.forEach(b => {
+    if (!map.has(b.contentIdx)) {
+      map.set(b.contentIdx, {
+        contentIdx: b.contentIdx,
+        contentTitle: b.contentTitle ?? '',
+        contentType: b.contentType ?? '',
+        posterImageUrl: b.posterImageUrl ?? '',
+        places: [],
+      });
+    }
+    map.get(b.contentIdx).places.push(mapBookmarkToSpot(b));
+  });
+  return Array.from(map.values());
+});
+
+async function loadSavedSpots() {
+  const data = await bookmarkApi.getMyPlaces();
+  rawBookmarks.value = data ?? [];
+  savedSpots.value = rawBookmarks.value.map(mapBookmarkToSpot);
+}
+
+onMounted(() => { loadSavedSpots(); });
+onIonViewWillEnter(() => { loadSavedSpots(); });
 
 const myPhotos = ref([
   { id: 1, spotName: '스가 신사', takenAt: '2024.11.03', emoji: '⛩️', gradient: 'linear-gradient(145deg,#cffafe,#a5f3fc)' },
@@ -670,5 +770,190 @@ const savedCount = computed(() => savedSpots.value.length);
   .photos-grid {
     grid-template-columns: repeat(5, 1fr);
   }
+}
+
+/* ── 보기 모드 토글 ── */
+.view-toggle {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 16px;
+  background: #f3f4f6;
+  border-radius: 10px;
+  padding: 4px;
+  width: fit-content;
+}
+
+.vt-btn {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 6px 14px;
+  border-radius: 8px;
+  border: none;
+  background: none;
+  font-size: 13px;
+  font-weight: 600;
+  color: #9ca3af;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.vt-btn.active {
+  background: #fff;
+  color: var(--brand, #14BCED);
+  box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+}
+
+.vt-btn ion-icon {
+  font-size: 15px;
+}
+
+/* ── 작품별 그룹 ── */
+.content-groups {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.content-group {
+  background: #fff;
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+}
+
+.group-header {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 16px;
+  cursor: pointer;
+  transition: background 0.15s;
+  border-bottom: 1px solid #f3f4f6;
+}
+
+.group-header:hover {
+  background: rgba(20,188,237,0.04);
+}
+
+.group-poster {
+  width: 52px;
+  flex-shrink: 0;
+  aspect-ratio: 2 / 3;
+  border-radius: 8px;
+  overflow: hidden;
+  background: #f3f4f6;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.group-poster img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.group-poster-ph {
+  font-size: 20px;
+}
+
+.group-info {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.group-type-badge {
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--brand, #14BCED);
+  background: rgba(20,188,237,0.1);
+  padding: 2px 8px;
+  border-radius: 20px;
+  width: fit-content;
+}
+
+.group-title {
+  font-size: 14px;
+  font-weight: 800;
+  color: #111827;
+  margin: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.group-count {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
+  color: #9ca3af;
+  margin: 0;
+}
+
+.group-count ion-icon {
+  font-size: 12px;
+}
+
+.group-arrow {
+  font-size: 16px;
+  color: #d1d5db;
+  flex-shrink: 0;
+}
+
+/* 성지 가로 스크롤 */
+.group-places {
+  display: flex;
+  gap: 10px;
+  padding: 12px 16px;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.group-places::-webkit-scrollbar {
+  display: none;
+}
+
+.gp-card {
+  flex-shrink: 0;
+  width: 88px;
+  cursor: pointer;
+  border-radius: 10px;
+  overflow: hidden;
+  background: #f9fafb;
+  border: 1px solid #f3f4f6;
+  transition: transform 0.15s, box-shadow 0.15s;
+}
+
+.gp-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(20,188,237,0.15);
+}
+
+.gp-thumb {
+  aspect-ratio: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.gp-emoji {
+  font-size: 22px;
+}
+
+.gp-name {
+  font-size: 11px;
+  font-weight: 600;
+  color: #374151;
+  margin: 0;
+  padding: 6px 6px 8px;
+  text-align: center;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
 }
 </style>

@@ -10,7 +10,7 @@ export function useBottomSheet() {
     let startHeight = 0;
 
     function startDrag(e: MouseEvent | TouchEvent) {
-        e.preventDefault();
+        if (e.cancelable) e.preventDefault();
         dragging = true;
         startY = 'touches' in e ? e.touches[0].clientY : e.clientY;
         startHeight = sheetHeight.value;

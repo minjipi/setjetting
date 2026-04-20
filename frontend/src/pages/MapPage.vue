@@ -10,102 +10,170 @@
                 <div class="main-wrap">
 
                     <!-- 상단 바 -->
-                    <TopBar v-model="searchQuery"/>
+                    <TopBar v-model="searchQuery" :title="headerTitle" @back="handleHeaderBack"/>
 
                     <!-- 지도 + 패널 영역 -->
                     <div class="content-row">
 
-                        <!-- 장소 섹션 패널 -->
+                        <!-- 장소/작품 상세 패널 -->
                         <Transition name="panel">
                             <div v-if="selectedPlace" class="content-panel" :style="{ height: sheetHeight + 'px' }">
-                                <div class="mobile-drag" @mousedown="startMobileDrag" @touchstart.prevent="startMobileDrag">
+                                <div class="mobile-drag" @mousedown="startMobileDrag" @touchstart="startMobileDrag">
                                     <div class="drag-bar"/>
                                 </div>
                                 <div class="panel-body">
-                                    <div class="panel-header">
-                                        <h3 class="panel-title">장소 정보</h3>
-                                        <button class="close-btn" @click="selectedPlace = null">
-                                            <ion-icon name="close-outline"/>
-                                        </button>
-                                    </div>
 
-                                    <section class="panel-section">
-                                        <div class="place-card">
-                                            <div class="place-thumb">
-                                                <img v-if="selectedPlace.placeImageUrl" :src="selectedPlace.placeImageUrl" :alt="selectedPlace.name" class="thumb-img"/>
-                                                <div v-else class="thumb-placeholder">📍</div>
-                                            </div>
-                                            <div class="place-meta">
-                                                <h3 class="place-title">{{ selectedPlace.name }}</h3>
-                                                <p class="place-english">{{ selectedPlace.englishName }}</p>
-                                                <p class="place-address">
-                                                    <ion-icon name="location-outline" class="addr-icon"/>
-                                                    {{ selectedPlace.address }}
-                                                </p>
-                                                <button class="detail-btn" @click="goPlaceDetail(selectedPlace.placeIdx)">
-                                                    상세 페이지로
-                                                    <ion-icon name="chevron-forward-outline"/>
+                                    <!-- ── 장소 상세 뷰 ── -->
+                                    <template v-if="panelView === 'place'">
+                                        <div class="panel-header">
+                                            <h3 class="panel-title">장소 정보</h3>
+                                            <div class="panel-actions">
+                                                <button class="icon-btn" :class="{ 'icon-btn--active': bookmarked }" @click="toggleBookmark" :title="bookmarked ? '북마크 해제' : '북마크'">
+                                                    <ion-icon :name="bookmarked ? 'bookmark' : 'bookmark-outline'"/>
+                                                </button>
+                                                <button class="icon-btn" @click="closePanel">
+                                                    <ion-icon name="close-outline"/>
                                                 </button>
                                             </div>
                                         </div>
-                                    </section>
 
-                                    <section v-if="placeDetail" class="panel-section">
-                                        <h3 class="section-heading">
-                                            <ion-icon name="film-outline" class="section-icon"/>
-                                            관련 작품
-                                        </h3>
-                                        <div class="content-card" @click="router.push({ name: 'ContentDetail', params: { id: placeDetail.contentIdx } })">
-                                            <div class="content-poster">
-                                                <img v-if="placeDetail.posterImageUrl" :src="placeDetail.posterImageUrl" :alt="placeDetail.title" class="poster-img"/>
-                                                <div v-else class="poster-placeholder">🎬</div>
-                                            </div>
-                                            <div class="content-meta">
-                                                <p class="content-name">{{ placeDetail.title }}</p>
-                                                <p class="content-english">{{ placeDetail.englishTitle }}</p>
-                                                <p class="content-desc">{{ placeDetail.description }}</p>
-                                                <span class="place-count">
-                                                    <ion-icon name="location-outline"/>
-                                                    성지 {{ placeDetail.placeCount }}곳
-                                                </span>
-                                            </div>
-                                        </div>
-                                    </section>
-
-                                    <section v-if="placeDetail?.places?.length" class="panel-section">
-                                        <h3 class="section-heading">
-                                            <ion-icon name="location-outline" class="section-icon"/>
-                                            관련 장소
-                                            <span class="count-badge">{{ placeDetail.places.length }}</span>
-                                        </h3>
-                                        <div class="place-list">
-                                            <div
-                                                v-for="p in placeDetail.places"
-                                                :key="p.placeIdx"
-                                                class="place-item"
-                                                :class="{ 'place-item--current': p.placeIdx === selectedPlace.placeIdx }"
-                                                @click="selectPlace(p)"
-                                            >
-                                                <div class="item-thumb">
-                                                    <img v-if="p.placeImageUrl" :src="p.placeImageUrl" :alt="p.name"/>
-                                                    <div v-else class="thumb-placeholder"/>
+                                        <section class="panel-section">
+                                            <div class="place-card">
+                                                <div class="place-thumb">
+                                                    <img v-if="selectedPlace.placeImageUrl" :src="selectedPlace.placeImageUrl" :alt="selectedPlace.name" class="thumb-img"/>
+                                                    <div v-else class="thumb-placeholder">📍</div>
                                                 </div>
-                                                <div class="place-info">
-                                                    <h4 class="place-name">{{ p.name }}</h4>
-                                                    <p class="place-address-sm">{{ p.address }}</p>
-                                                    <span v-if="p.placeIdx === selectedPlace.placeIdx" class="tag-current">현재 장소</span>
-                                                    <span v-else class="tag-match">
-                                                        <ion-icon name="checkmark-circle-outline"/>
-                                                        성지 매칭
+                                                <div class="place-meta">
+                                                    <h3 class="place-title">{{ selectedPlace.name }}</h3>
+                                                    <p class="place-english">{{ selectedPlace.englishName }}</p>
+                                                    <p class="place-address">
+                                                        <ion-icon name="location-outline" class="addr-icon"/>
+                                                        {{ selectedPlace.address }}
+                                                    </p>
+                                                </div>
+                                            </div>
+                                        </section>
+
+                                        <section v-if="placeDetail && !detailLoading" class="panel-section">
+                                            <h3 class="section-heading">
+                                                <ion-icon name="film-outline" class="section-icon"/>
+                                                관련 작품
+                                            </h3>
+                                            <div class="content-card" @click="switchToContentView()">
+                                                <div class="content-poster">
+                                                    <img v-if="placeDetail.posterImageUrl" :src="placeDetail.posterImageUrl" :alt="placeDetail.title" class="poster-img"/>
+                                                    <div v-else class="poster-placeholder">🎬</div>
+                                                </div>
+                                                <div class="content-meta">
+                                                    <p class="content-name">{{ placeDetail.title }}</p>
+                                                    <p class="content-english">{{ placeDetail.englishTitle }}</p>
+                                                    <p class="content-desc">{{ placeDetail.description }}</p>
+                                                    <span class="place-count">
+                                                        <ion-icon name="location-outline"/>
+                                                        성지 {{ placeDetail.placeCount }}곳
+                                                    </span>
+                                                </div>
+                                                <ion-icon name="chevron-forward-outline" class="card-arrow"/>
+                                            </div>
+                                        </section>
+
+                                        <section v-if="placeDetail?.places?.length && !detailLoading" class="panel-section">
+                                            <h3 class="section-heading">
+                                                <ion-icon name="location-outline" class="section-icon"/>
+                                                관련 장소
+                                                <span class="count-badge">{{ placeDetail.places.length }}</span>
+                                            </h3>
+                                            <div class="place-list">
+                                                <div
+                                                    v-for="p in placeDetail.places"
+                                                    :key="p.placeIdx"
+                                                    class="place-item"
+                                                    :class="{ 'place-item--current': p.placeIdx === selectedPlace.placeIdx }"
+                                                    @click="switchToPlace(p)"
+                                                >
+                                                    <div class="item-thumb">
+                                                        <img v-if="p.placeImageUrl" :src="p.placeImageUrl" :alt="p.name"/>
+                                                        <div v-else class="thumb-placeholder"/>
+                                                    </div>
+                                                    <div class="place-info">
+                                                        <h4 class="place-name">{{ p.name }}</h4>
+                                                        <p class="place-address-sm">{{ p.address }}</p>
+                                                        <span v-if="p.placeIdx === selectedPlace.placeIdx" class="tag-current">현재 장소</span>
+                                                        <span v-else class="tag-match">
+                                                            <ion-icon name="checkmark-circle-outline"/>
+                                                            성지 매칭
+                                                        </span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </section>
+
+                                        <div v-if="detailLoading" class="detail-loading">
+                                            <div class="loading-pulse"/>
+                                        </div>
+                                    </template>
+
+                                    <!-- ── 작품 상세 뷰 ── -->
+                                    <template v-else-if="panelView === 'content'">
+                                        <div class="panel-header">
+                                            <button class="icon-btn" @click="panelView = 'place'">
+                                                <ion-icon name="arrow-back-outline"/>
+                                            </button>
+                                            <h3 class="panel-title panel-title--content">{{ placeDetail?.title }}</h3>
+                                            <button class="icon-btn" @click="closePanel">
+                                                <ion-icon name="close-outline"/>
+                                            </button>
+                                        </div>
+
+                                        <section class="panel-section">
+                                            <div class="content-card-full">
+                                                <div class="content-poster-lg">
+                                                    <img v-if="placeDetail?.posterImageUrl" :src="placeDetail.posterImageUrl" :alt="placeDetail.title" class="poster-img"/>
+                                                    <div v-else class="poster-placeholder">🎬</div>
+                                                </div>
+                                                <div class="content-meta">
+                                                    <p class="content-english">{{ placeDetail?.englishTitle }}</p>
+                                                    <p class="content-desc content-desc--full">{{ placeDetail?.description }}</p>
+                                                    <span class="place-count">
+                                                        <ion-icon name="location-outline"/>
+                                                        성지 {{ placeDetail?.placeCount }}곳
                                                     </span>
                                                 </div>
                                             </div>
-                                        </div>
-                                    </section>
+                                        </section>
 
-                                    <div v-if="detailLoading" class="detail-loading">
-                                        <div class="loading-pulse"/>
-                                    </div>
+                                        <section class="panel-section">
+                                            <h3 class="section-heading">
+                                                <ion-icon name="location-outline" class="section-icon"/>
+                                                성지 목록
+                                                <span class="count-badge">{{ placeDetail?.places?.length }}</span>
+                                            </h3>
+                                            <div class="place-list">
+                                                <div
+                                                    v-for="p in placeDetail?.places"
+                                                    :key="p.placeIdx"
+                                                    class="place-item"
+                                                    :class="{ 'place-item--current': p.placeIdx === selectedPlace.placeIdx }"
+                                                    @click="switchToPlace(p)"
+                                                >
+                                                    <div class="item-thumb">
+                                                        <img v-if="p.placeImageUrl" :src="p.placeImageUrl" :alt="p.name"/>
+                                                        <div v-else class="thumb-placeholder"/>
+                                                    </div>
+                                                    <div class="place-info">
+                                                        <h4 class="place-name">{{ p.name }}</h4>
+                                                        <p class="place-address-sm">{{ p.address }}</p>
+                                                        <span v-if="p.placeIdx === selectedPlace.placeIdx" class="tag-current">현재 장소</span>
+                                                        <span v-else class="tag-match">
+                                                            <ion-icon name="checkmark-circle-outline"/>
+                                                            성지 매칭
+                                                        </span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </section>
+                                    </template>
+
                                 </div>
                             </div>
                         </Transition>
@@ -148,14 +216,18 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue';
-import { IonPage, IonContent, IonIcon, useIonRouter } from '@ionic/vue';
+import { IonPage, IonContent, IonIcon, useIonRouter, onIonViewWillEnter, onIonViewDidEnter } from '@ionic/vue';
+import { useRoute } from 'vue-router';
 import { addIcons } from 'ionicons';
 import {
     home, mapOutline, peopleOutline, personOutline,
     locationOutline, closeOutline, chevronForwardOutline,
-    filmOutline, checkmarkCircleOutline,
+    filmOutline, checkmarkCircleOutline, arrowBackOutline,
+    bookmark, bookmarkOutline,
 } from 'ionicons/icons';
 import { placeApi } from '@/api/placeApi';
+import { contentApi } from '@/api/contentApi';
+import { bookmarkApi } from '@/api/bookmarkApi';
 import { useKakaoMap } from '@/composables/useKakaoMap';
 import { useBottomSheet } from '@/composables/useBottomSheet';
 import { useAuth } from '@/composables/useAuth';
@@ -168,36 +240,183 @@ addIcons({
     'location-outline': locationOutline, 'close-outline': closeOutline,
     'chevron-forward-outline': chevronForwardOutline,
     'film-outline': filmOutline, 'checkmark-circle-outline': checkmarkCircleOutline,
+    'arrow-back-outline': arrowBackOutline,
+    'bookmark': bookmark, 'bookmark-outline': bookmarkOutline,
 });
 
 const router = useIonRouter();
-const { load, createMarker } = useKakaoMap();
+const route = useRoute();
+const { load, createMarker, createActiveMarkerImage, createNormalMarkerImage } = useKakaoMap();
 const { sheetHeight, startDrag: startMobileDrag } = useBottomSheet();
 const { isLoggedIn } = useAuth();
 
 function goHome() { router.push('/home'); }
 function goAuth() { router.push(isLoggedIn.value ? '/mypage' : '/auth'); }
 function goSns() { router.push('/sns'); }
-function goPlaceDetail(id: number) { router.push({ name: 'PlaceDetail', params: { id } }); }
 
 const searchQuery = ref('');
 
 const mapEl = ref<HTMLDivElement | null>(null);
+let mapInstance: any = null;
+const allPlaces = ref<any[]>([]);
+let allMarkers: { placeIdx: number; marker: any }[] = [];
+let activeMarkerEntry: { placeIdx: number; marker: any } | null = null;
 const loading = ref(true);
 const selectedPlace = ref<any>(null);
 const placeDetail = ref<any>(null);
 const detailLoading = ref(false);
+const panelView = ref<'place' | 'content'>('place');
+const bookmarked = ref(false);
+
+const headerTitle = computed(() => {
+    if (!selectedPlace.value) return '';
+    if (panelView.value === 'content') return placeDetail.value?.title ?? '';
+    return selectedPlace.value.name ?? '';
+});
+
+function handleHeaderBack() {
+    if (panelView.value === 'content') {
+        panelView.value = 'place';
+    } else {
+        closePanel();
+    }
+}
+
+function setActiveMarker(placeIdx: number) {
+    if (activeMarkerEntry) {
+        activeMarkerEntry.marker.setImage(createNormalMarkerImage());
+    }
+    const entry = allMarkers.find(m => m.placeIdx === placeIdx) ?? null;
+    if (entry) entry.marker.setImage(createActiveMarkerImage());
+    activeMarkerEntry = entry;
+}
 
 async function selectPlace(place: any) {
     selectedPlace.value = place;
     placeDetail.value = null;
     detailLoading.value = true;
+    panelView.value = 'place';
+    bookmarked.value = false;
+    setActiveMarker(place.placeIdx);
     try {
-        placeDetail.value = await placeApi.getDetail(place.placeIdx);
+        const [detail, status] = await Promise.all([
+            placeApi.getDetail(place.placeIdx),
+            bookmarkApi.getStatus(place.placeIdx),
+        ]);
+        placeDetail.value = detail;
+        bookmarked.value = status?.bookmarked ?? false;
+        if (detail?.places?.length) {
+            filterMarkersToPlaces(detail.places.map((p: any) => p.placeIdx));
+        }
     } finally {
         detailLoading.value = false;
     }
 }
+
+function applyPanelOffset() {
+    // 데스크탑은 패널이 지도 옆에 위치해 겹치지 않으므로 모바일만 처리
+    if (!mapInstance || window.innerWidth >= 1024) return;
+    const BOTTOM_NAV_H = 60;
+    const offset = Math.round((sheetHeight.value + BOTTOM_NAV_H) / 2);
+    mapInstance.panBy(0, offset);
+}
+
+async function switchToPlace(place: any) {
+    await selectPlace(place);
+    if (mapInstance && place.latitude && place.longitude) {
+        const pos = new window.kakao.maps.LatLng(place.latitude, place.longitude);
+        const needsZoom = mapInstance.getLevel() > 5;
+        if (needsZoom) {
+            mapInstance.setLevel(4, { anchor: pos, animate: true });
+            setTimeout(applyPanelOffset, 320);
+        } else {
+            mapInstance.panTo(pos);
+            setTimeout(applyPanelOffset, 50);
+        }
+    }
+}
+
+function closePanel() {
+    selectedPlace.value = null;
+    placeDetail.value = null;
+    panelView.value = 'place';
+    bookmarked.value = false;
+    if (activeMarkerEntry) {
+        activeMarkerEntry.marker.setImage(createNormalMarkerImage());
+        activeMarkerEntry = null;
+    }
+    showAllMarkers();
+}
+
+async function toggleBookmark() {
+    if (!isLoggedIn.value) { router.push('/auth'); return; }
+    const result = await bookmarkApi.toggle(selectedPlace.value.placeIdx);
+    if (result !== null) bookmarked.value = result.bookmarked ?? result;
+}
+
+function filterMarkersToPlaces(placeIdxList: number[]) {
+    const set = new Set(placeIdxList);
+    allMarkers.forEach(({ placeIdx, marker }) => {
+        marker.setMap(set.has(placeIdx) ? mapInstance : null);
+    });
+}
+
+function showAllMarkers() {
+    allMarkers.forEach(({ marker }) => marker.setMap(mapInstance));
+}
+
+function fitMapToPlaces(places: any[]) {
+    if (!mapInstance || !places?.length) return;
+    const valid = places.filter(p => p.latitude && p.longitude);
+    if (!valid.length) return;
+    const bounds = new window.kakao.maps.LatLngBounds();
+    valid.forEach(p => bounds.extend(new window.kakao.maps.LatLng(p.latitude, p.longitude)));
+    mapInstance.setBounds(bounds);
+}
+
+function switchToContentView() {
+    panelView.value = 'content';
+    fitMapToPlaces(placeDetail.value?.places ?? []);
+}
+
+async function handleQueryParams() {
+    const places = allPlaces.value;
+    if (!places.length) return;
+
+    const queryPlaceId = route.query.placeId;
+    const queryContentId = route.query.contentId;
+    if (!queryPlaceId && !queryContentId) return;
+
+    // 이전 상태 즉시 초기화
+    selectedPlace.value = null;
+    placeDetail.value = null;
+    panelView.value = 'place';
+    bookmarked.value = false;
+
+    if (queryPlaceId) {
+        const target = places.find((p: any) => p.placeIdx === Number(queryPlaceId));
+        if (target) await switchToPlace(target);
+        return;
+    }
+
+    if (queryContentId) {
+        const content = await contentApi.getDetail(Number(queryContentId));
+        if (content?.places?.length) {
+            // 장소 뷰 없이 작품 뷰 직접 표시
+            placeDetail.value = content;
+            selectedPlace.value = { placeIdx: -1 }; // 패널 표시용 sentinel
+            panelView.value = 'content';
+            filterMarkersToPlaces(content.places.map((p: any) => p.placeIdx));
+            fitMapToPlaces(content.places);
+        }
+    }
+}
+
+onIonViewDidEnter(() => {
+    if (!mapInstance) return;
+    mapInstance.relayout();
+    if (allPlaces.value.length) handleQueryParams();
+});
 
 onMounted(async () => {
     try {
@@ -206,6 +425,7 @@ onMounted(async () => {
 
         const center = new window.kakao.maps.LatLng(36.450701, 126.570667);
         const map = new window.kakao.maps.Map(mapEl.value, { center, level: 13, maxLevel: 11 });
+        mapInstance = map;
 
         const clusterer = new window.kakao.maps.MarkerClusterer({
             map, averageCenter: true, minLevel: 6, disableClickZoom: false,
@@ -229,10 +449,14 @@ onMounted(async () => {
             .map((p: any) => {
                 const marker = createMarker(map, p.latitude, p.longitude, p.name);
                 window.kakao.maps.event.addListener(marker, 'click', () => selectPlace(p));
+                allMarkers.push({ placeIdx: p.placeIdx, marker });
                 return marker;
             });
 
         clusterer.addMarkers(markers);
+        allPlaces.value = places;
+
+        await handleQueryParams();
     } catch (e) {
         console.error(e);
         loading.value = false;
@@ -372,8 +596,19 @@ onMounted(async () => {
 .place-english { font-size: 11px; color: #6b7280; margin: 0; }
 .place-address { display: flex; align-items: flex-start; gap: 3px; font-size: 11px; color: #4b5563; margin: 0; line-height: 1.5; }
 .addr-icon { font-size: 11px; color: var(--brand, #14BCED); flex-shrink: 0; margin-top: 1px; }
-.detail-btn { display: flex; align-items: center; gap: 4px; margin-top: 2px; padding: 5px 12px; background: var(--brand, #14BCED); color: #fff; border: none; border-radius: 20px; font-size: 11px; font-weight: 700; cursor: pointer; width: fit-content; transition: background 0.15s; }
-.detail-btn:hover { background: #0fa8d4; }
+.panel-actions { display: flex; align-items: center; gap: 4px; }
+
+.icon-btn {
+    width: 30px; height: 30px; border-radius: 50%;
+    background: #f3f4f6; border: none;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 16px; color: #6b7280; cursor: pointer; transition: background 0.15s, color 0.15s;
+}
+.icon-btn:hover { background: #e5e7eb; }
+.icon-btn--active { color: #f59e0b; background: #fef3c7; }
+.icon-btn--active:hover { background: #fde68a; }
+
+.panel-title--content { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
 .content-card { display: flex; gap: 12px; cursor: pointer; }
 .content-poster { width: 70px; flex-shrink: 0; aspect-ratio: 2/3; border-radius: 8px; overflow: hidden; background: #f3f4f6; border: 1px solid #e5e7eb; }
@@ -396,6 +631,12 @@ onMounted(async () => {
 .place-address-sm { font-size: 10px; color: #6b7280; margin: 0 0 3px; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
 .tag-current { font-size: 10px; background: rgba(20,188,237,0.12); color: var(--brand,#14BCED); padding: 2px 7px; border-radius: 6px; font-weight: 600; }
 .tag-match { display: flex; align-items: center; gap: 3px; font-size: 10px; color: var(--brand,#14BCED); font-weight: 600; }
+.card-arrow { font-size: 14px; color: #d1d5db; flex-shrink: 0; align-self: center; }
+
+.content-card-full { display: flex; gap: 14px; }
+.content-poster-lg { width: 90px; flex-shrink: 0; aspect-ratio: 2/3; border-radius: 10px; overflow: hidden; background: #f3f4f6; border: 1px solid #e5e7eb; }
+.content-desc--full { -webkit-line-clamp: unset; }
+
 .detail-loading { display: flex; justify-content: center; padding: 20px; }
 
 /* ══════════════════════════════════════

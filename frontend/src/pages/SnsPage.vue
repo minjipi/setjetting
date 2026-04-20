@@ -185,7 +185,7 @@ function goMap() { router.push('/map'); }
 function goAuth() { router.push(isLoggedIn.value ? '/mypage' : '/auth'); }
 function goPlace(post: any) {
     closePost();
-    router.push({ name: 'PlaceDetail', params: { id: post.placeId } });
+    router.push({ name: 'Map', query: { placeId: post.placeId } });
 }
 
 const filters = [

@@ -89,7 +89,7 @@ function drawMarkers(places: Place[]) {
   const markers = validPlaces.map(p => {
     const marker = createMarker(mapInstance, p.latitude, p.longitude, p.name);
     window.kakao.maps.event.addListener(marker, 'click', () => {
-      router.push({ name: 'PlaceDetail', params: { id: p.placeIdx } });
+      router.push({ name: 'Map', query: { placeId: p.placeIdx } });
     });
     return marker;
   });

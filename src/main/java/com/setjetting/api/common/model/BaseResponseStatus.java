@@ -62,6 +62,7 @@ public enum BaseResponseStatus {
     COMMENT_UNAUTHORIZED(false, 40015, "댓글 작성자만 수정/삭제할 수 있습니다."),
     MENTORING_SESSION_CLOSED(false, 40023, "종료된 멘토링 세션입니다."),
     ROADMAP_NOT_FOUND(false, 40030, "로드맵을 찾을 수 없습니다."),
+    PLACE_NOT_FOUND(false, 40050, "성지를 찾을 수 없습니다."),
 
     /**
      * 50000 : Database 오류
