@@ -5,7 +5,7 @@ import com.setjetting.api.common.model.BaseResponseStatus;
 import com.setjetting.api.domain.bookmark.model.Bookmark;
 import com.setjetting.api.domain.bookmark.model.BookmarkDto;
 import com.setjetting.api.domain.place.PlaceRepository;
-import com.setjetting.api.domain.place.model.Place;
+import com.setjetting.api.domain.place.model.entity.Place;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;

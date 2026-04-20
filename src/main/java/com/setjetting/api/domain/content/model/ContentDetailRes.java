@@ -1,6 +1,6 @@
 package com.setjetting.api.domain.content.model;
 
-import com.setjetting.api.domain.place.model.PlaceListRes;
+import com.setjetting.api.domain.place.model.dto.PlaceListRes;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Builder;

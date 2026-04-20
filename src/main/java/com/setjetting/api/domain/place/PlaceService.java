@@ -2,10 +2,10 @@ package com.setjetting.api.domain.place;
 
 import com.setjetting.api.domain.content.ContentRepository;
 import com.setjetting.api.domain.content.model.Content;
-import com.setjetting.api.domain.place.model.CreatePlaceReq;
-import com.setjetting.api.domain.place.model.CreatePlaceRes;
-import com.setjetting.api.domain.place.model.Place;
-import com.setjetting.api.domain.place.model.PlaceListRes;
+import com.setjetting.api.domain.place.model.dto.CreatePlaceReq;
+import com.setjetting.api.domain.place.model.dto.CreatePlaceRes;
+import com.setjetting.api.domain.place.model.entity.Place;
+import com.setjetting.api.domain.place.model.dto.PlaceListRes;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;

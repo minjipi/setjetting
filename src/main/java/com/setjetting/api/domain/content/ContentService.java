@@ -2,7 +2,7 @@ package com.setjetting.api.domain.content;
 
 import com.setjetting.api.domain.content.model.*;
 import com.setjetting.api.domain.place.PlaceRepository;
-import com.setjetting.api.domain.place.model.Place;
+import com.setjetting.api.domain.place.model.entity.Place;
 import org.springframework.transaction.annotation.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;

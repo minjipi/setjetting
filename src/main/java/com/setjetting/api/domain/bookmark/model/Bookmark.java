@@ -1,7 +1,7 @@
 package com.setjetting.api.domain.bookmark.model;
 
 import com.setjetting.api.common.model.BaseEntity;
-import com.setjetting.api.domain.place.model.Place;
+import com.setjetting.api.domain.place.model.entity.Place;
 import jakarta.persistence.*;
 import lombok.*;
 

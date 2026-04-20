@@ -3,7 +3,7 @@ package com.setjetting.api.domain.trend;
 import com.setjetting.api.domain.content.ContentRepository;
 import com.setjetting.api.domain.content.model.Content;
 import com.setjetting.api.domain.place.PlaceRepository;
-import com.setjetting.api.domain.place.model.Place;
+import com.setjetting.api.domain.place.model.entity.Place;
 import com.setjetting.api.domain.trend.model.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;

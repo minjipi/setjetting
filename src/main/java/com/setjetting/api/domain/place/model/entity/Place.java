@@ -1,10 +1,14 @@
-package com.setjetting.api.domain.place.model;
+package com.setjetting.api.domain.place.model.entity;
 
 import com.setjetting.api.common.model.BaseEntity;
 
 import com.setjetting.api.domain.content.model.Content;
+import com.setjetting.api.domain.scene.Scene;
 import jakarta.persistence.*;
 import lombok.*;
+
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Getter
@@ -42,4 +46,13 @@ public class Place extends BaseEntity {
 
     @Column(name = "DESCRIPTION", columnDefinition = "TEXT")
     private String description;
+
+    @Builder.Default
+    @OneToMany(mappedBy = "place", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Scene> scenes = new ArrayList<>();
+
+    public void addScene(Scene scene) {
+        this.scenes.add(scene);
+        scene.assignPlace(this);
+    }
 }
