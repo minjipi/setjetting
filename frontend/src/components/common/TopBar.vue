@@ -1,0 +1,206 @@
+<template>
+    <div class="top-bar">
+        <div class="logo-wrap">
+            <svg width="30" height="30" viewBox="0 0 30 30" xmlns="http://www.w3.org/2000/svg">
+                <circle cx="15" cy="15" r="15" fill="#14BCED"/>
+                <path d="M15 7 L12 15 L18 15 L11 23 L17 16 L13 16 Z" fill="#fff"/>
+            </svg></div>
+
+        <div class="search-bar" @click="inputEl?.focus()">
+            <ion-icon name="search-outline" class="search-icon"/>
+            <input
+                ref="inputEl"
+                :value="modelValue"
+                type="text"
+                :placeholder="placeholder"
+                class="search-input"
+                @input="$emit('update:modelValue', ($event.target as HTMLInputElement).value)"
+            />
+        </div>
+
+        <div class="top-bar-actions">
+            <template v-if="isLoggedIn">
+                <button class="top-action-btn" aria-label="알림">
+                    <ion-icon name="notifications-outline"/>
+                </button>
+                <div class="top-avatar" @click="router.push('/mypage')">
+                    {{ userInitial }}
+                </div>
+            </template>
+            <button v-else class="login-btn" @click="router.push('/auth')">
+                로그인
+            </button>
+        </div>
+    </div>
+</template>
+
+<script setup lang="ts">
+import { ref, computed } from 'vue';
+import { IonIcon, useIonRouter } from '@ionic/vue';
+import { addIcons } from 'ionicons';
+import { searchOutline, notificationsOutline } from 'ionicons/icons';
+import { useAuth } from '@/composables/useAuth';
+
+addIcons({ 'search-outline': searchOutline, 'notifications-outline': notificationsOutline });
+
+withDefaults(defineProps<{
+    modelValue?: string;
+    placeholder?: string;
+}>(), {
+    modelValue: '',
+    placeholder: '작품명, 장소 검색...',
+});
+
+defineEmits<{ 'update:modelValue': [value: string] }>();
+
+const inputEl = ref<HTMLInputElement | null>(null);
+const router = useIonRouter();
+const { isLoggedIn, user } = useAuth();
+const userInitial = computed(() => user.value?.name?.charAt(0).toUpperCase() ?? 'U');
+</script>
+
+<style scoped>
+.top-bar {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 16px;
+    background: #fff;
+    border-bottom: 1px solid rgba(20, 188, 237, 0.1);
+}
+
+.logo-wrap {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-shrink: 0;
+}
+
+.logo-text {
+    font-size: 15px;
+    font-weight: 800;
+    color: var(--brand);
+    letter-spacing: -0.3px;
+}
+
+.search-bar {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: #fff;
+    border-radius: 24px;
+    padding: 9px 16px;
+    box-shadow: 0 1px 6px rgba(20, 188, 237, 0.12);
+    border: 1px solid rgba(20, 188, 237, 0.15);
+    cursor: text;
+}
+
+.search-icon {
+    font-size: 16px;
+    color: var(--brand);
+    flex-shrink: 0;
+}
+
+.search-input {
+    flex: 1;
+    background: transparent;
+    border: none;
+    outline: none;
+    font-size: 14px;
+    color: var(--text-primary);
+}
+
+.search-input::placeholder {
+    color: var(--text-muted);
+}
+
+.top-bar-actions {
+    display: none;
+}
+
+@media (min-width: 768px) {
+    .top-bar {
+        padding: 14px 28px;
+    }
+
+    .search-bar {
+        max-width: 480px;
+    }
+}
+
+@media (min-width: 1024px) {
+    .logo-wrap {
+        display: none;
+    }
+
+    .top-bar {
+        padding: 16px 32px;
+        background: #fff;
+        border-bottom: 1px solid rgba(20, 188, 237, 0.1);
+    }
+
+    .search-bar {
+        max-width: 560px;
+    }
+
+    .top-bar-actions {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        flex-shrink: 0;
+        margin-left: auto;
+    }
+
+    .top-action-btn {
+        background: none;
+        border: none;
+        font-size: 22px;
+        color: var(--text-secondary, #666);
+        cursor: pointer;
+        padding: 6px;
+        border-radius: 8px;
+        transition: color 0.15s;
+        display: flex;
+        align-items: center;
+    }
+
+    .top-action-btn:hover {
+        color: var(--brand);
+    }
+
+    .top-avatar {
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+        background: var(--brand);
+        color: #fff;
+        font-size: 14px;
+        font-weight: 700;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+    }
+
+    .login-btn {
+        padding: 8px 18px;
+        border-radius: 20px;
+        background: var(--brand);
+        color: #fff;
+        font-size: 13px;
+        font-weight: 700;
+        border: none;
+        cursor: pointer;
+        transition: background 0.15s;
+        white-space: nowrap;
+    }
+
+    .login-btn:hover {
+        background: #0fa8d4;
+    }
+}
+</style>

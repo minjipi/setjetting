@@ -4,79 +4,13 @@
             <div class="page-layout">
 
                 <!-- ── 데스크탑 사이드바 (≥1024px) ── -->
-                <aside class="sidebar">
-                    <div class="sidebar-logo">
-                        <svg width="34" height="34" viewBox="0 0 30 30" xmlns="http://www.w3.org/2000/svg">
-                            <circle cx="15" cy="15" r="15" fill="#14BCED"/>
-                            <path d="M15 7 L12 15 L18 15 L11 23 L17 16 L13 16 Z" fill="#fff"/>
-                        </svg>
-                        <span class="sidebar-logo-text">성지맵</span>
-                    </div>
-                    <nav class="sidebar-nav">
-                        <button class="sidebar-nav-btn" @click="goHome">
-                            <ion-icon name="home"/>
-                            <span>홈</span>
-                        </button>
-                        <button class="sidebar-nav-btn active">
-                            <ion-icon name="map-outline"/>
-                            <span>지도</span>
-                        </button>
-                        <button class="sidebar-nav-btn">
-                            <ion-icon name="bookmark-outline"/>
-                            <span>저장</span>
-                        </button>
-                        <button class="sidebar-nav-btn" @click="goAuth">
-                            <ion-icon name="person-outline"/>
-                            <span>{{ isLoggedIn ? '프로필' : '로그인' }}</span>
-                        </button>
-                    </nav>
-                    <div class="sidebar-footer">
-                        <div class="sidebar-membership">
-                            <span>✨</span>
-                            <div>
-                                <p class="sm-title">멤버십</p>
-                                <p class="sm-sub">더 많은 성지 탐색</p>
-                            </div>
-                        </div>
-                    </div>
-                </aside>
+                <Sidebar active="map"/>
 
                 <!-- ── 메인 영역 ── -->
                 <div class="main-wrap">
 
                     <!-- 상단 바 -->
-                    <div class="top-bar">
-                        <div class="logo-wrap">
-                            <svg width="30" height="30" viewBox="0 0 30 30" xmlns="http://www.w3.org/2000/svg">
-                                <circle cx="15" cy="15" r="15" fill="#14BCED"/>
-                                <path d="M15 7 L12 15 L18 15 L11 23 L17 16 L13 16 Z" fill="#fff"/>
-                            </svg>
-                            <span class="logo-text">성지맵</span>
-                        </div>
-                        <div class="search-bar" @click="focusSearch">
-                            <ion-icon name="search-outline" class="search-icon"/>
-                            <input
-                                ref="searchInputEl"
-                                v-model="searchQuery"
-                                type="text"
-                                placeholder="작품명, 장소 검색..."
-                                class="search-input"
-                            />
-                        </div>
-                        <div class="top-bar-actions">
-                            <template v-if="isLoggedIn">
-                                <button class="top-action-btn">
-                                    <ion-icon name="notifications-outline"/>
-                                </button>
-                                <div class="top-avatar" @click="goAuth">
-                                    {{ userInitial }}
-                                </div>
-                            </template>
-                            <button v-else class="login-btn" @click="goAuth">
-                                로그인
-                            </button>
-                        </div>
-                    </div>
+                    <TopBar v-model="searchQuery"/>
 
                     <!-- 지도 + 패널 영역 -->
                     <div class="content-row">
@@ -200,9 +134,9 @@
                 <ion-icon name="map-outline"/>
                 <span>지도</span>
             </button>
-            <button class="nav-btn">
-                <ion-icon name="bookmark-outline"/>
-                <span>저장</span>
+            <button class="nav-btn" @click="goSns">
+                <ion-icon name="people-outline"/>
+                <span>SNS</span>
             </button>
             <button class="nav-btn" @click="goAuth">
                 <ion-icon name="person-outline"/>
@@ -217,40 +151,36 @@ import { ref, computed, onMounted } from 'vue';
 import { IonPage, IonContent, IonIcon, useIonRouter } from '@ionic/vue';
 import { addIcons } from 'ionicons';
 import {
-    home, mapOutline, bookmarkOutline, personOutline,
+    home, mapOutline, peopleOutline, personOutline,
     locationOutline, closeOutline, chevronForwardOutline,
-    filmOutline, checkmarkCircleOutline, notificationsOutline,
-    searchOutline,
+    filmOutline, checkmarkCircleOutline,
 } from 'ionicons/icons';
 import { placeApi } from '@/api/placeApi';
 import { useKakaoMap } from '@/composables/useKakaoMap';
 import { useBottomSheet } from '@/composables/useBottomSheet';
 import { useAuth } from '@/composables/useAuth';
+import TopBar from '@/components/common/TopBar.vue';
+import Sidebar from '@/components/common/Sidebar.vue';
 
 addIcons({
     'home': home, 'map-outline': mapOutline,
-    'bookmark-outline': bookmarkOutline, 'person-outline': personOutline,
+    'people-outline': peopleOutline, 'person-outline': personOutline,
     'location-outline': locationOutline, 'close-outline': closeOutline,
     'chevron-forward-outline': chevronForwardOutline,
     'film-outline': filmOutline, 'checkmark-circle-outline': checkmarkCircleOutline,
-    'notifications-outline': notificationsOutline,
-    'search-outline': searchOutline,
 });
 
 const router = useIonRouter();
 const { load, createMarker } = useKakaoMap();
 const { sheetHeight, startDrag: startMobileDrag } = useBottomSheet();
-const { isLoggedIn, user } = useAuth();
-
-const userInitial = computed(() => user.value?.name?.charAt(0).toUpperCase() ?? 'U');
+const { isLoggedIn } = useAuth();
 
 function goHome() { router.push('/home'); }
 function goAuth() { router.push(isLoggedIn.value ? '/mypage' : '/auth'); }
+function goSns() { router.push('/sns'); }
 function goPlaceDetail(id: number) { router.push({ name: 'PlaceDetail', params: { id } }); }
 
 const searchQuery = ref('');
-const searchInputEl = ref<HTMLInputElement | null>(null);
-function focusSearch() { searchInputEl.value?.focus(); }
 
 const mapEl = ref<HTMLDivElement | null>(null);
 const loading = ref(true);
@@ -321,49 +251,11 @@ onMounted(async () => {
     min-height: 100%;
 }
 
-.sidebar { display: none; }
-
 .main-wrap {
     flex: 1; min-width: 0;
     display: flex; flex-direction: column;
     height: 100vh;
 }
-
-.top-bar {
-    flex-shrink: 0;
-    position: sticky; top: 0; z-index: 100;
-    display: flex; align-items: center; gap: 10px;
-    padding: 12px 16px;
-    background: #fff;
-    border-bottom: 1px solid rgba(20, 188, 237, 0.1);
-}
-
-.logo-wrap {
-    display: flex; align-items: center; gap: 6px; flex-shrink: 0;
-}
-
-.logo-text {
-    font-size: 15px; font-weight: 800; color: var(--brand); letter-spacing: -0.3px;
-}
-
-.search-bar {
-    flex: 1;
-    display: flex; align-items: center; gap: 8px;
-    background: #fff; border-radius: 24px; padding: 9px 16px;
-    box-shadow: 0 1px 6px rgba(20,188,237,0.12);
-    border: 1px solid rgba(20,188,237,0.15); cursor: text;
-}
-
-.search-icon { font-size: 16px; color: var(--brand); flex-shrink: 0; }
-
-.search-input {
-    flex: 1; background: transparent; border: none; outline: none;
-    font-size: 14px; color: var(--text-primary);
-}
-
-.search-input::placeholder { color: var(--text-muted); }
-
-.top-bar-actions { display: none; }
 
 .content-row {
     flex: 1; min-height: 0;
@@ -512,83 +404,7 @@ onMounted(async () => {
 @media (min-width: 1024px) {
     .page-layout { min-height: 100vh; }
 
-    .sidebar {
-        display: flex; flex-direction: column;
-        width: 220px; flex-shrink: 0;
-        background: #fff;
-        border-right: 1px solid rgba(20,188,237,0.12);
-        height: 100vh; position: sticky; top: 0;
-        padding: 24px 16px; box-sizing: border-box;
-        box-shadow: 2px 0 12px rgba(20,188,237,0.06);
-    }
-
-    .sidebar-logo {
-        display: flex; align-items: center; gap: 10px;
-        padding: 4px 8px 28px;
-    }
-
-    .sidebar-logo-text { font-size: 18px; font-weight: 800; color: var(--brand); letter-spacing: -0.4px; }
-
-    .sidebar-nav { display: flex; flex-direction: column; gap: 4px; flex: 1; }
-
-    .sidebar-nav-btn {
-        display: flex; align-items: center; gap: 12px;
-        width: 100%; padding: 12px 14px;
-        border: none; border-radius: 12px; background: transparent;
-        font-size: 14px; font-weight: 600; color: var(--text-secondary);
-        cursor: pointer; text-align: left; transition: all 0.15s ease;
-    }
-
-    .sidebar-nav-btn ion-icon { font-size: 20px; flex-shrink: 0; }
-
-    .sidebar-nav-btn:hover { background: var(--brand-light); color: var(--brand); }
-    .sidebar-nav-btn.active { background: var(--brand-light); color: var(--brand); font-weight: 700; }
-
-    .sidebar-footer { padding-top: 16px; border-top: 1px solid var(--border); }
-
-    .sidebar-membership {
-        display: flex; align-items: center; gap: 10px; padding: 12px;
-        background: linear-gradient(135deg, #e0f7fd, #cff2fc);
-        border-radius: 12px; cursor: pointer;
-    }
-
-    .sidebar-membership span { font-size: 20px; }
-    .sm-title { font-size: 13px; font-weight: 700; color: var(--brand); margin: 0 0 1px; }
-    .sm-sub { font-size: 11px; color: var(--text-secondary); margin: 0; }
-
     .main-wrap { height: 100vh; }
-
-    .logo-wrap { display: none; }
-
-    .top-bar { padding: 16px 32px; }
-
-    .search-bar { max-width: 560px; }
-
-    .top-bar-actions {
-        display: flex; align-items: center; gap: 8px; flex-shrink: 0; margin-left: auto;
-    }
-
-    .top-action-btn {
-        background: none; border: none; font-size: 22px; color: var(--text-secondary);
-        cursor: pointer; padding: 6px; border-radius: 8px; transition: color 0.15s;
-    }
-
-    .top-action-btn:hover { color: var(--brand); }
-
-    .top-avatar {
-        width: 36px; height: 36px; border-radius: 50%;
-        background: var(--brand); color: #fff;
-        font-size: 14px; font-weight: 700;
-        display: flex; align-items: center; justify-content: center; cursor: pointer;
-    }
-
-    .login-btn {
-        padding: 8px 18px; border-radius: 20px; background: var(--brand); color: #fff;
-        font-size: 13px; font-weight: 700; border: none; cursor: pointer;
-        transition: background 0.15s; white-space: nowrap;
-    }
-
-    .login-btn:hover { background: #0fa8d4; }
 
     .content-row {
         position: static; display: flex; flex-direction: row; overflow: hidden;
@@ -610,12 +426,5 @@ onMounted(async () => {
     .bottom-nav { display: none; }
 }
 
-@media (min-width: 768px) {
-    .search-bar { max-width: 480px; }
-    .top-bar { padding: 14px 28px; }
-}
 
-@media (min-width: 1280px) {
-    .sidebar { width: 240px; }
-}
 </style>

@@ -1,3 +1,7 @@
+ion-content::part(scroll) {
+  scrollbar-gutter: stable;
+}
+
 :root {
   --ion-color-primary: #14BCED;
   --ion-color-primary-rgb: 20, 188, 237;

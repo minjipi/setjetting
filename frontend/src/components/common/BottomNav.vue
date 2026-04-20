@@ -12,10 +12,10 @@
                 <span>지도</span>
             </div>
         </ion-button>
-        <ion-button class="nav-btn" :class="{ active: active === 'bookmark' }" fill="clear">
+        <ion-button class="nav-btn" :class="{ active: active === 'sns' }" fill="clear" router-link="/sns" router-direction="none">
             <div class="btn-inner">
-                <ion-icon name="bookmark-outline"/>
-                <span>저장</span>
+                <ion-icon name="people-outline"/>
+                <span>SNS</span>
             </div>
         </ion-button>
         <ion-button class="nav-btn" :class="{ active: active === 'profile' }" fill="clear" :router-link="isLoggedIn ? '/mypage' : '/auth'" router-direction="none">
@@ -30,12 +30,12 @@
 <script setup lang="ts">
 import { IonIcon, IonButton } from '@ionic/vue';
 import { addIcons } from 'ionicons';
-import { home, mapOutline, bookmarkOutline, personOutline } from 'ionicons/icons';
+import { home, mapOutline, peopleOutline, personOutline } from 'ionicons/icons';
 import { useAuth } from '@/composables/useAuth';
 
-addIcons({ 'home': home, 'map-outline': mapOutline, 'bookmark-outline': bookmarkOutline, 'person-outline': personOutline });
+addIcons({ 'home': home, 'map-outline': mapOutline, 'people-outline': peopleOutline, 'person-outline': personOutline });
 
-defineProps<{ active?: 'home' | 'map' | 'bookmark' | 'profile' }>();
+defineProps<{ active?: 'home' | 'map' | 'sns' | 'profile' }>();
 
 const { isLoggedIn } = useAuth();
 </script>

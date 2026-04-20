@@ -7,6 +7,7 @@ import CameraPage from '@/pages/CameraPage.vue';
 import ContentDetailPage from '@/pages/ContentDetailPage.vue';
 import PlaceDetailPage from '@/pages/PlaceDetailPage.vue';
 import MapPage from '@/pages/MapPage.vue';
+import SnsPage from '@/pages/SnsPage.vue';
 
 const routes: Array<RouteRecordRaw> = [
   {
@@ -39,6 +40,11 @@ const routes: Array<RouteRecordRaw> = [
     path: '/map',
     name: 'Map',
     component: MapPage,
+  },
+  {
+    path: '/sns',
+    name: 'Sns',
+    component: SnsPage,
   },
   {
     path: '/contents/:id',
