@@ -261,8 +261,8 @@ import {
 import MapSection from '@/components/home/MapSection.vue';
 import MediaCard from '@/components/home/MediaCard.vue';
 import {useAuth} from '@/composables/useAuth';
-import { contentApi } from '@/api/contentApi';
 import { placeApi } from '@/api/placeApi';
+import { trendApi } from '@/api/trendApi';
 
 addIcons({
     'search-outline': searchOutline,
@@ -302,10 +302,12 @@ function focusSearch() {
 }
 
 function onContentClick(item: any) {
+    trendApi.recordContentActivity(item.contentIdx, 'VIEW');
     router.push({ name: 'ContentDetail', params: { id: item.contentIdx }, state: { content: item } });
 }
 
 function onPlaceClick(item: any) {
+    trendApi.recordPlaceActivity(item.placeIdx, 'VIEW');
     router.push({ name: 'PlaceDetail', params: { id: item.placeIdx }, state: { place: item } });
 }
 
@@ -383,18 +385,14 @@ const popularContents = ref([]);
 const popularPlace = ref([]);
 const mapPlaces = ref([]);
 
-async function loadContents() {
-    const data = await contentApi.getList();
-    if (Array.isArray(data)) {
-        popularContents.value = data;
-    }
-}
-
-async function loadPlaces() {
-    const data = await placeApi.getList();
-    if (Array.isArray(data)) {
-        mapPlaces.value = data;
-        popularPlace.value = data.map(p => ({
+async function loadTrendData() {
+    const [trendContents, trendPlaces] = await Promise.all([
+        trendApi.getTopContents(),
+        trendApi.getTopPlaces(),
+    ]);
+    if (Array.isArray(trendContents)) popularContents.value = trendContents;
+    if (Array.isArray(trendPlaces)) {
+        popularPlace.value = trendPlaces.map(p => ({
             placeIdx: p.placeIdx,
             title: p.name,
             posterImageUrl: p.placeImageUrl,
@@ -402,8 +400,13 @@ async function loadPlaces() {
     }
 }
 
+async function loadPlaces() {
+    const data = await placeApi.getList();
+    if (Array.isArray(data)) mapPlaces.value = data;
+}
+
 onMounted(() => {
-    loadContents();
+    loadTrendData();
     loadPlaces();
 })
 </script>
