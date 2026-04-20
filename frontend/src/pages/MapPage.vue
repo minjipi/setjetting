@@ -54,6 +54,54 @@
                                             </div>
                                         </section>
 
+                                        <section v-if="currentPlaceScenes.length" class="panel-section scene-section">
+                                            <div
+                                                class="scene-image-wrap"
+                                                @touchstart.passive="onSceneTouchStart"
+                                                @touchend.passive="onSceneTouchEnd"
+                                            >
+                                                <Transition name="scene-fade" mode="out-in">
+                                                    <img
+                                                        v-if="currentPlaceScene.sceneImageUrl"
+                                                        :key="currentSceneIndex"
+                                                        :src="currentPlaceScene.sceneImageUrl"
+                                                        alt="장면 이미지"
+                                                        class="scene-image"
+                                                    />
+                                                    <div v-else :key="'ph-' + currentSceneIndex" class="scene-image-placeholder"/>
+                                                </Transition>
+
+                                                <button v-if="currentSceneIndex > 0" class="scene-nav scene-nav--prev" @click.stop="currentSceneIndex--">
+                                                    <ion-icon name="chevron-back-outline"/>
+                                                </button>
+                                                <button v-if="currentSceneIndex < currentPlaceScenes.length - 1" class="scene-nav scene-nav--next" @click.stop="currentSceneIndex++">
+                                                    <ion-icon name="chevron-forward-outline"/>
+                                                </button>
+
+                                                <div class="scene-info-bar">
+                                                    <span v-if="currentPlaceScene.episodeNumber" class="scene-badge episode-badge">
+                                                        {{ currentPlaceScene.episodeNumber }}화
+                                                    </span>
+                                                    <span v-if="currentPlaceScene.appearTime != null" class="scene-timecode">
+                                                        {{ formatTimestamp(currentPlaceScene.appearTime) }}
+                                                    </span>
+                                                    <span v-if="currentPlaceScene.sceneDescription" class="scene-description">
+                                                        {{ currentPlaceScene.sceneDescription }}
+                                                    </span>
+                                                </div>
+
+                                                <div v-if="currentPlaceScenes.length > 1" class="scene-dots">
+                                                    <span
+                                                        v-for="(_, i) in currentPlaceScenes"
+                                                        :key="i"
+                                                        class="scene-dot"
+                                                        :class="{ 'scene-dot--active': i === currentSceneIndex }"
+                                                        @click.stop="currentSceneIndex = i"
+                                                    />
+                                                </div>
+                                            </div>
+                                        </section>
+
                                         <section v-if="placeDetail && !detailLoading" class="panel-section">
                                             <h3 class="section-heading">
                                                 <ion-icon name="film-outline" class="section-icon"/>
@@ -221,9 +269,9 @@ import { useRoute } from 'vue-router';
 import { addIcons } from 'ionicons';
 import {
     home, mapOutline, peopleOutline, personOutline,
-    locationOutline, closeOutline, chevronForwardOutline,
+    locationOutline, closeOutline, chevronForwardOutline, chevronBackOutline,
     filmOutline, checkmarkCircleOutline, arrowBackOutline,
-    bookmark, bookmarkOutline,
+    bookmark, bookmarkOutline, timeOutline,
 } from 'ionicons/icons';
 import { placeApi } from '@/api/placeApi';
 import { contentApi } from '@/api/contentApi';
@@ -242,6 +290,8 @@ addIcons({
     'film-outline': filmOutline, 'checkmark-circle-outline': checkmarkCircleOutline,
     'arrow-back-outline': arrowBackOutline,
     'bookmark': bookmark, 'bookmark-outline': bookmarkOutline,
+    'time-outline': timeOutline,
+    'chevron-back-outline': chevronBackOutline,
 });
 
 const router = useIonRouter();
@@ -267,6 +317,32 @@ const placeDetail = ref<any>(null);
 const detailLoading = ref(false);
 const panelView = ref<'place' | 'content'>('place');
 const bookmarked = ref(false);
+
+const currentSceneIndex = ref(0);
+
+const currentPlaceScenes = computed<any[]>(() => {
+    const place = placeDetail.value?.places?.find((p: any) => p.placeIdx === selectedPlace.value?.placeIdx);
+    return place?.scenes ?? [];
+});
+
+const currentPlaceScene = computed(() => currentPlaceScenes.value[currentSceneIndex.value] ?? null);
+
+let sceneTouchStartX = 0;
+function onSceneTouchStart(e: TouchEvent) { sceneTouchStartX = e.touches[0].clientX; }
+function onSceneTouchEnd(e: TouchEvent) {
+    const dx = e.changedTouches[0].clientX - sceneTouchStartX;
+    if (Math.abs(dx) < 40) return;
+    if (dx < 0 && currentSceneIndex.value < currentPlaceScenes.value.length - 1) currentSceneIndex.value++;
+    else if (dx > 0 && currentSceneIndex.value > 0) currentSceneIndex.value--;
+}
+
+function formatTimestamp(seconds: number): string {
+    const h = Math.floor(seconds / 3600);
+    const m = Math.floor((seconds % 3600) / 60);
+    const s = seconds % 60;
+    if (h > 0) return `${h}시간 ${m}분 ${s}초`;
+    return `${m}분 ${s}초`;
+}
 
 const headerTitle = computed(() => {
     if (!selectedPlace.value) return '';
@@ -298,6 +374,7 @@ async function selectPlace(place: any) {
     panelView.value = 'place';
     bookmarked.value = false;
     setActiveMarker(place.placeIdx);
+    currentSceneIndex.value = 0;
     try {
         const [detail, status] = await Promise.all([
             placeApi.getDetail(place.placeIdx),
@@ -631,6 +708,69 @@ onMounted(async () => {
 .place-address-sm { font-size: 10px; color: #6b7280; margin: 0 0 3px; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
 .tag-current { font-size: 10px; background: rgba(20,188,237,0.12); color: var(--brand,#14BCED); padding: 2px 7px; border-radius: 6px; font-weight: 600; }
 .tag-match { display: flex; align-items: center; gap: 3px; font-size: 10px; color: var(--brand,#14BCED); font-weight: 600; }
+.scene-section { padding: 0; overflow: hidden; }
+
+.scene-image-wrap {
+    width: 100%; aspect-ratio: 16/9;
+    position: relative; overflow: hidden; background: #111;
+}
+.scene-image { width: 100%; height: 100%; object-fit: cover; display: block; }
+.scene-image-placeholder { width: 100%; height: 100%; background: #1f2937; }
+
+.scene-info-bar {
+    position: absolute; bottom: 0; left: 0; right: 0;
+    display: flex; align-items: center; gap: 8px;
+    padding: 28px 12px 10px;
+    background: linear-gradient(to bottom, transparent, rgba(0,0,0,0.92));
+}
+
+.scene-badge {
+    display: inline-flex; align-items: center; flex-shrink: 0;
+    font-size: 11px; font-weight: 700; padding: 3px 9px;
+    border-radius: 99px;
+}
+
+.episode-badge { background: var(--brand, #14BCED); color: #fff; }
+
+.scene-timecode {
+    font-size: 12px; font-weight: 600; flex-shrink: 0;
+    color: rgba(255,255,255,0.85);
+    font-variant-numeric: tabular-nums;
+    letter-spacing: 0.3px;
+}
+
+.scene-description {
+    font-size: 11px; color: rgba(255,255,255,0.55);
+    overflow: hidden; white-space: nowrap; text-overflow: ellipsis;
+    flex: 1; min-width: 0;
+}
+
+.scene-nav {
+    position: absolute; top: 50%; transform: translateY(-50%);
+    width: 28px; height: 28px; border-radius: 50%;
+    background: rgba(0,0,0,0.45); border: none;
+    display: flex; align-items: center; justify-content: center;
+    color: #fff; font-size: 16px; cursor: pointer;
+    transition: background 0.15s; z-index: 2;
+}
+.scene-nav:hover { background: rgba(0,0,0,0.7); }
+.scene-nav--prev { left: 8px; }
+.scene-nav--next { right: 8px; }
+
+.scene-dots {
+    position: absolute; bottom: 38px; left: 0; right: 0;
+    display: flex; justify-content: center; gap: 5px; z-index: 2;
+}
+.scene-dot {
+    width: 5px; height: 5px; border-radius: 50%;
+    background: rgba(255,255,255,0.4); cursor: pointer;
+    transition: background 0.2s, transform 0.2s;
+}
+.scene-dot--active { background: #fff; transform: scale(1.3); }
+
+.scene-fade-enter-active, .scene-fade-leave-active { transition: opacity 0.2s ease; }
+.scene-fade-enter-from, .scene-fade-leave-to { opacity: 0; }
+
 .card-arrow { font-size: 14px; color: #d1d5db; flex-shrink: 0; align-self: center; }
 
 .content-card-full { display: flex; gap: 14px; }
