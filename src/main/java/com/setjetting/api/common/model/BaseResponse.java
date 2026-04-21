@@ -28,7 +28,7 @@ public class BaseResponse<T> {
         return new BaseResponse<>(status.isSuccess(), status.getCode(), status.getMessage(), null);
     }
 
-    public static <T> BaseResponse<T> error(BaseResponseStatus status, T results) {
-        return new BaseResponse<>(status.isSuccess(), status.getCode(), status.getMessage(), results);
+    public static <T> BaseResponse<T> error(BaseResponseStatus status, String customMessage) {
+        return new BaseResponse<>(false, status.getCode(), customMessage, null);
     }
 }

@@ -12,8 +12,6 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
-import java.util.HashMap;
-import java.util.Map;
 
 import static com.setjetting.api.common.model.BaseResponseStatus.REQUEST_ERROR;
 
@@ -22,19 +20,19 @@ import static com.setjetting.api.common.model.BaseResponseStatus.REQUEST_ERROR;
 public class GlobalExceptionHandler {
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ResponseEntity<BaseResponse> handleValidationExceptions(MethodArgumentNotValidException ex) {
-        Map<String, String> errors = new HashMap<>();
-        for (FieldError error : ex.getBindingResult().getFieldErrors()) {
-            errors.put(error.getField(), error.getDefaultMessage());
-        }
+    public ResponseEntity<BaseResponse<Object>> handleValidationExceptions(MethodArgumentNotValidException ex) {
+        String errorMessage = ex.getBindingResult().getFieldErrors().stream()
+                .findFirst()
+                .map(FieldError::getDefaultMessage)
+                .orElse("입력값이 잘못되었습니다.");
 
-        System.out.println(errors);
-
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(BaseResponse.error(REQUEST_ERROR, errors));
+        return ResponseEntity
+                .status(HttpStatus.BAD_REQUEST)
+                .body(BaseResponse.error(REQUEST_ERROR, errorMessage));
     }
 
     @ExceptionHandler(BaseException.class)
-    public ResponseEntity<BaseResponse> handleBaseException(BaseException ex) {
+    public ResponseEntity<BaseResponse<Object>> handleBaseException(BaseException ex) {
         BaseResponseStatus status = ex.getStatus();
 
         return ResponseEntity
@@ -43,17 +41,17 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler(DisabledException.class)
-    public ResponseEntity<BaseResponse> handleDisabledException(DisabledException ex) {
+    public ResponseEntity<BaseResponse<Object>> handleDisabledException(DisabledException ex) {
         return handleBaseException(BaseException.of(BaseResponseStatus.INVALID_USER_DISABLED));
     }
 
     @ExceptionHandler(BadCredentialsException.class)
-    public ResponseEntity<BaseResponse> handleBadCredentialsException(BadCredentialsException ex) {
+    public ResponseEntity<BaseResponse<Object>> handleBadCredentialsException(BadCredentialsException ex) {
         return handleBaseException(BaseException.of(BaseResponseStatus.INVALID_USER_INFO));
     }
 
     @ExceptionHandler(Exception.class)
-    public ResponseEntity<BaseResponse> handleException(Exception ex) {
+    public ResponseEntity<BaseResponse<Object>> handleException(Exception ex) {
         log.error("[SERVER] 예상치 못한 오류 발생: {}", ex.getMessage(), ex);
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                 .body(BaseResponse.error(REQUEST_ERROR));
