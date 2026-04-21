@@ -90,7 +90,7 @@ public enum BaseResponseStatus {
     private final String message;
 
     BaseResponseStatus(boolean isSuccess, int code, String message) {
-        this.isSuccess = isSuccess;;
+        this.isSuccess = isSuccess;
         this.code = code;
         this.message = message;
     }
