@@ -1,6 +1,10 @@
 package com.setjetting.api.domain.post.model.dto;
+import com.setjetting.api.domain.comment.Comment;
+import com.setjetting.api.domain.comment.model.CommentRes;
 import com.setjetting.api.domain.post.model.entity.Post;
 import lombok.*;
+
+import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -20,6 +24,8 @@ public class PostDetailRes {
     private String contentType;
     private long createdAtMs;
     private List<ImageDto> images;
+
+    private List<CommentRes> comments;
 
     @Getter
     @Builder
@@ -44,6 +50,15 @@ public class PostDetailRes {
                         .map(img -> ImageDto.builder()
                                 .imageUrl(img.getImageUrl())
                                 .description(img.getDescription())
+                                .build())
+                        .collect(Collectors.toList()))
+                .comments(post.getComments().stream()
+                        .sorted(Comparator.comparing(Comment::getCreatedAt).reversed()) // 댓글 최신순 정렬
+                        .map(comment -> CommentRes.builder()
+                                .commentIdx(comment.getIdx())
+                                .writerName(comment.getUser() != null ? comment.getUser().getName() : "알 수 없음")
+                                .content(comment.getContent())
+                                .createdAtMs(comment.getCreatedAt() != null ? comment.getCreatedAt().getTime() : 0L)
                                 .build())
                         .collect(Collectors.toList()))
                 .build();

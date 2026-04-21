@@ -1,5 +1,9 @@
 package com.setjetting.api.domain.post;
 
+import com.setjetting.api.domain.comment.Comment;
+import com.setjetting.api.domain.comment.CommentRepository;
+import com.setjetting.api.domain.comment.model.CreateCommentReq;
+import com.setjetting.api.domain.comment.model.CreateCommentRes;
 import com.setjetting.api.domain.place.PlaceRepository;
 import com.setjetting.api.domain.place.model.entity.Place;
 import com.setjetting.api.domain.post.model.dto.CreatePostReq;
@@ -39,6 +43,7 @@ public class PostService {
     private final PostRepository postRepository;
     private final UserRepository userRepository;
     private final PlaceRepository placeRepository;
+    private final CommentRepository commentRepository;
 
     @Value("${project.upload.path}")
     private String uploadPath;
@@ -218,5 +223,23 @@ public class PostService {
         return PostDetailRes.of(post, placeName, contentTitle, contentType);
     }
 
+    @Transactional
+    public CreateCommentRes createComment(Long postIdx, CreateCommentReq createCommentReq) {
+        User user = userRepository.findById(getCurrentUserIdx())
+                .orElseThrow(() -> new IllegalArgumentException("해당 유저를 찾을 수 없습니다."));
 
+        Post post = postRepository.findById(postIdx)
+                .orElseThrow(() -> new IllegalArgumentException("해당 포스팅을 찾을 수 없습니다."));
+
+        Comment comment = Comment.builder()
+                .user(user)
+                .post(post)
+                .content(createCommentReq.getContent())
+                .build();
+
+        post.addComment(comment);
+
+        Long savedIdx = commentRepository.save(comment).getIdx();
+        return CreateCommentRes.of(savedIdx);
+    }
 }
