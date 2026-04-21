@@ -1,12 +1,15 @@
 package com.setjetting.api.domain.post.model.entity;
 
 import com.setjetting.api.common.model.BaseEntity;
+import com.setjetting.api.domain.comment.Comment;
 import com.setjetting.api.domain.user.model.entity.User;
 import jakarta.persistence.*;
 import lombok.*;
 
 import java.util.ArrayList;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Set;
 
 @Entity
 @Getter
@@ -42,5 +45,14 @@ public class Post extends BaseEntity {
     public void addImage(PostImage postImage) {
         this.images.add(postImage);
         postImage.assignPost(this);
+    }
+
+    @Builder.Default
+    @OneToMany(mappedBy = "post", cascade = CascadeType.ALL, orphanRemoval = true)
+    private Set<Comment> comments = new LinkedHashSet<>();
+
+    public void addComment(Comment comment) {
+        this.comments.add(comment);
+        comment.assignPost(this);
     }
 }

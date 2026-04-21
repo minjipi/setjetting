@@ -1,6 +1,8 @@
 package com.setjetting.api.domain.post;
 
 import com.setjetting.api.common.model.BaseResponse;
+import com.setjetting.api.domain.comment.model.CreateCommentReq;
+import com.setjetting.api.domain.comment.model.CreateCommentRes;
 import com.setjetting.api.domain.post.model.dto.CreatePostReq;
 import com.setjetting.api.domain.post.model.dto.CreatePostRes;
 import com.setjetting.api.domain.post.model.dto.MyPostRes;
@@ -8,6 +10,7 @@ import com.setjetting.api.domain.post.model.dto.PostDetailRes;
 import com.setjetting.api.domain.post.model.dto.SnsPostRes;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -63,5 +66,14 @@ public class PostController {
         return ResponseEntity.ok(BaseResponse.success(response));
     }
 
+    @PostMapping("/{postIdx}/comment")
+    @Operation(summary = "댓글 등록", description = "특정 포스팅에 댓글을 작성합니다.")
+    public ResponseEntity<BaseResponse<CreateCommentRes>> createComment(
+            @PathVariable Long postIdx,
+            @Valid @RequestBody CreateCommentReq request) {
+
+        CreateCommentRes response = postService.createComment(postIdx, request);
+        return ResponseEntity.ok(BaseResponse.success(response));
+    }
 
 }
