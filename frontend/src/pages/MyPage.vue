@@ -90,7 +90,8 @@
                   v-for="spot in visitedSpots"
                   :key="spot.id"
                   :spot="spot"
-                  @click="onSpotClick"
+                  @goPlace="onSpotClick"
+                  @goPost="onPostClick"
                 />
               </div>
             </div>
@@ -249,6 +250,8 @@ import { useAuth } from '@/composables/useAuth';
 import VisitedSpotCard from '@/components/mypage/VisitedSpotCard.vue';
 import Sidebar from '@/components/common/Sidebar.vue';
 import { bookmarkApi } from '@/api/bookmarkApi';
+import { postApi } from '@/api/postApi';
+import { resolveImageUrl } from '@/utils/imageUrl';
 
 addIcons({
   'home-outline': homeOutline,
@@ -285,46 +288,42 @@ async function onLogout() {
 }
 
 function onSpotClick(spot: any) {
-  router.push({ name: 'Map', query: { placeId: spot.id } });
+  if (spot.id) router.push({ name: 'Map', query: { placeId: spot.id } });
+}
+
+function onPostClick(spot: any) {
+  if (spot.postIdx) router.push({ name: 'PostDetail', params: { idx: spot.postIdx } });
 }
 
 function onPhotoClick(_photo: any) {
   // TODO: 사진 상세 보기
 }
 
-// ── 임시 목업 데이터 ──
-const visitedSpots = ref([
-  {
-    id: 1,
-    mediaTitle: '너의 이름은.',
-    mediaType: '영화',
-    spotName: '스가 신사',
-    visitedAt: '2024.11.03',
-    emoji: '🌠',
-    gradient: 'linear-gradient(145deg,#cffafe,#a5f3fc)',
-    photoCount: 5,
-  },
-  {
-    id: 2,
-    mediaTitle: '주술회전 2기',
-    mediaType: '애니',
-    spotName: '시부야 스크램블 교차로',
-    visitedAt: '2024.10.21',
-    emoji: '🔮',
-    gradient: 'linear-gradient(145deg,#ede9fe,#ddd6fe)',
-    photoCount: 12,
-  },
-  {
-    id: 3,
-    mediaTitle: '이태원 클라쓰',
-    mediaType: '드라마',
-    spotName: '이태원 단밤 촬영지',
-    visitedAt: '2024.09.14',
-    emoji: '🍺',
-    gradient: 'linear-gradient(145deg,#f0fdf4,#bbf7d0)',
-    photoCount: 3,
-  },
-]);
+const visitedSpots = ref<any[]>([]);
+
+function mapPostToSpot(p: any) {
+  return {
+    id: p.placeIdx ?? null,
+    postIdx: p.postIdx,
+    mediaTitle: p.contentTitle ?? '',
+    mediaType: p.contentType ?? '',
+    spotName: p.placeName ?? p.title ?? '',
+    visitedAt: p.createdAt ?? '',
+    imageUrl: resolveImageUrl(p.mainImageUrl),
+    emoji: '📍',
+    gradient: 'linear-gradient(145deg,#f1f5f9,#e2e8f0)',
+    photoCount: p.imageCount ?? 0,
+  };
+}
+
+async function loadVisitedSpots() {
+  try {
+    const data = await postApi.getMyPosts();
+    visitedSpots.value = (data ?? []).map(mapPostToSpot);
+  } catch (e) {
+    console.error('[MyPage] loadVisitedSpots 실패:', e);
+  }
+}
 
 const rawBookmarks = ref<any[]>([]);
 const savedSpots = ref<any[]>([]);
@@ -373,18 +372,12 @@ async function loadSavedSpots() {
   savedSpots.value = rawBookmarks.value.map(mapBookmarkToSpot);
 }
 
-onMounted(() => { loadSavedSpots(); });
-onIonViewWillEnter(() => { loadSavedSpots(); });
+onMounted(() => { loadSavedSpots(); loadVisitedSpots(); });
+onIonViewWillEnter(() => { loadSavedSpots(); loadVisitedSpots(); });
 
-const myPhotos = ref([
-  { id: 1, spotName: '스가 신사', takenAt: '2024.11.03', emoji: '⛩️', gradient: 'linear-gradient(145deg,#cffafe,#a5f3fc)' },
-  { id: 2, spotName: '스가 신사', takenAt: '2024.11.03', emoji: '🌅', gradient: 'linear-gradient(145deg,#fef3c7,#fde68a)' },
-  { id: 3, spotName: '시부야 교차로', takenAt: '2024.10.21', emoji: '🌃', gradient: 'linear-gradient(145deg,#ede9fe,#ddd6fe)' },
-  { id: 4, spotName: '시부야 교차로', takenAt: '2024.10.21', emoji: '🚶', gradient: 'linear-gradient(145deg,#f1f5f9,#e2e8f0)' },
-  { id: 5, spotName: '이태원 단밤', takenAt: '2024.09.14', emoji: '🏮', gradient: 'linear-gradient(145deg,#f0fdf4,#bbf7d0)' },
-]);
+const myPhotos = ref<any[]>([]);
 
-const totalPhotos = computed(() => myPhotos.value.length);
+const totalPhotos = computed(() => visitedSpots.value.reduce((sum, s) => sum + (s.photoCount ?? 0), 0));
 const savedCount = computed(() => savedSpots.value.length);
 </script>
 
@@ -817,7 +810,7 @@ const savedCount = computed(() => savedSpots.value.length);
 
 .content-group {
   background: #fff;
-  border-radius: 16px;
+  border-radius: 13px;
   overflow: hidden;
   box-shadow: 0 2px 8px rgba(0,0,0,0.06);
 }

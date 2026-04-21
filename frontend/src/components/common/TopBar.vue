@@ -23,6 +23,10 @@
             />
         </div>
 
+        <button v-if="!title && isLoggedIn" class="post-btn" aria-label="게시글 작성" @click="router.push('/post/write')">
+            <ion-icon name="add-outline"/>
+        </button>
+
         <div class="top-bar-actions">
             <template v-if="isLoggedIn">
                 <button class="top-action-btn" aria-label="알림">
@@ -37,16 +41,17 @@
             </button>
         </div>
     </div>
+
 </template>
 
 <script setup lang="ts">
 import { ref, computed } from 'vue';
 import { IonIcon, useIonRouter } from '@ionic/vue';
 import { addIcons } from 'ionicons';
-import { searchOutline, notificationsOutline, arrowBackOutline } from 'ionicons/icons';
+import { searchOutline, notificationsOutline, arrowBackOutline, addOutline } from 'ionicons/icons';
 import { useAuth } from '@/composables/useAuth';
 
-addIcons({ 'search-outline': searchOutline, 'notifications-outline': notificationsOutline, 'arrow-back-outline': arrowBackOutline });
+addIcons({ 'search-outline': searchOutline, 'notifications-outline': notificationsOutline, 'arrow-back-outline': arrowBackOutline, 'add-outline': addOutline });
 
 withDefaults(defineProps<{
     modelValue?: string;
@@ -74,7 +79,9 @@ const userInitial = computed(() => user.value?.name?.charAt(0).toUpperCase() ?? 
     display: flex;
     align-items: center;
     gap: 10px;
-    padding: 12px 16px;
+    padding: 0 16px;
+    height: 61px;
+    box-sizing: border-box;
     background: #fff;
     border-bottom: 1px solid rgba(20, 188, 237, 0.1);
 }
@@ -154,13 +161,32 @@ const userInitial = computed(() => user.value?.name?.charAt(0).toUpperCase() ?? 
     color: var(--text-muted);
 }
 
+.post-btn {
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    background: var(--brand, #14BCED);
+    border: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    color: #fff;
+    cursor: pointer;
+    flex-shrink: 0;
+    transition: background 0.15s;
+}
+
+.post-btn:hover { background: #0fa8d4; }
+
 .top-bar-actions {
     display: none;
 }
 
 @media (min-width: 768px) {
     .top-bar {
-        padding: 14px 28px;
+        padding: 0 28px;
+        height: 65px;
     }
 
     .search-bar {
@@ -174,7 +200,8 @@ const userInitial = computed(() => user.value?.name?.charAt(0).toUpperCase() ?? 
     }
 
     .top-bar {
-        padding: 16px 32px;
+        padding: 0 32px;
+        height: 69px;
         background: #fff;
         border-bottom: 1px solid rgba(20, 188, 237, 0.1);
     }

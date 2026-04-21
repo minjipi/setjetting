@@ -155,7 +155,9 @@ import {
   arrowBackOutline, cameraOutline, eyeOutline, eyeOffOutline,
   cameraReverseOutline, warningOutline, checkmarkOutline,
 } from 'ionicons/icons';
+import { useRoute } from 'vue-router';
 import { useCamera } from '@/composables/useCamera';
+import { useCaptureBuffer } from '@/composables/useCaptureBuffer';
 
 addIcons({
   'arrow-back-outline': arrowBackOutline,
@@ -168,7 +170,11 @@ addIcons({
 });
 
 const router = useIonRouter();
+const route = useRoute();
 const { isNative, captureNative, captureFromVideo, startStream, stopStream } = useCamera();
+const { set: bufferPhoto } = useCaptureBuffer();
+
+const forPost = route.query.for === 'post';
 
 // ── 상태 ──
 const videoEl = ref<HTMLVideoElement | null>(null);
@@ -203,20 +209,29 @@ async function initCamera() {
 
 // ── 촬영 ──
 async function capture() {
+  let photo;
   if (isNative) {
     try {
-      capturedPhoto.value = await captureNative();
-      stopStream(stream.value);
-      runAnalysis();
+      photo = await captureNative();
     } catch {
       cameraError.value = '촬영에 실패했습니다.';
+      return;
     }
   } else {
     if (!videoEl.value) return;
-    capturedPhoto.value = captureFromVideo(videoEl.value);
-    stopStream(stream.value);
-    runAnalysis();
+    photo = captureFromVideo(videoEl.value);
   }
+
+  stopStream(stream.value);
+
+  if (forPost) {
+    bufferPhoto(photo);
+    router.back();
+    return;
+  }
+
+  capturedPhoto.value = photo;
+  runAnalysis();
 }
 
 // ── 카메라 전환 (네이티브) ──

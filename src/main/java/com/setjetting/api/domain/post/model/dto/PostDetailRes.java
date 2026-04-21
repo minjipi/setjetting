@@ -10,9 +10,15 @@ import java.util.stream.Collectors;
 @AllArgsConstructor
 public class PostDetailRes {
     private Long postIdx;
+    private Long userIdx;
     private String title;
     private String description;
     private String userNickname;
+    private Long placeIdx;
+    private String placeName;
+    private String contentTitle;
+    private String contentType;
+    private long createdAtMs;
     private List<ImageDto> images;
 
     @Getter
@@ -22,12 +28,18 @@ public class PostDetailRes {
         private String description;
     }
 
-    public static PostDetailRes of(Post post) {
+    public static PostDetailRes of(Post post, String placeName, String contentTitle, String contentType) {
         return PostDetailRes.builder()
                 .postIdx(post.getIdx())
+                .userIdx(post.getUser().getIdx())
                 .title(post.getTitle())
                 .description(post.getDescription())
-                .userNickname(post.getUser().getName()) // 작성자 이름 맵핑
+                .userNickname(post.getUser().getName())
+                .placeIdx(post.getPlaceIdx())
+                .placeName(placeName)
+                .contentTitle(contentTitle)
+                .contentType(contentType)
+                .createdAtMs(post.getCreatedAt() != null ? post.getCreatedAt().getTime() : 0L)
                 .images(post.getImages().stream()
                         .map(img -> ImageDto.builder()
                                 .imageUrl(img.getImageUrl())
