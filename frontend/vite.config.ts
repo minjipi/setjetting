@@ -19,20 +19,15 @@ export default defineConfig({
   server: {
     port: 5173,
     proxy: {
-      // Spring Boot 백엔드로 프록시
-      // 브라우저는 localhost:5173 (same-origin) 으로만 통신 → CORS·SameSite 문제 없음
-      '/user': {
-        target: 'http://localhost:8080',
-        changeOrigin: true,
-      },
-      '/oauth2': {
-        target: 'http://localhost:8080',
-        changeOrigin: true,
-      },
-      '/login': {
-        target: 'http://localhost:8080',
-        changeOrigin: true,
-      },
+      // Spring Boot 백엔드로 프록시 (nginx 프록시 경로와 동일하게 유지)
+      '/user':     { target: 'http://localhost:8080', changeOrigin: true },
+      '/oauth2':   { target: 'http://localhost:8080', changeOrigin: true },
+      '/login':    { target: 'http://localhost:8080', changeOrigin: true },
+      '/post':     { target: 'http://localhost:8080', changeOrigin: true },
+      '/place':    { target: 'http://localhost:8080', changeOrigin: true },
+      '/bookmark': { target: 'http://localhost:8080', changeOrigin: true },
+      '/content':  { target: 'http://localhost:8080', changeOrigin: true },
+      '/trend':    { target: 'http://localhost:8080', changeOrigin: true },
     },
   },
   test: {

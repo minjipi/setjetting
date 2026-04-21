@@ -1,24 +1,24 @@
 <template>
     <div class="bottom-nav">
-        <ion-button class="nav-btn" :class="{ active: active === 'home' }" fill="clear" router-link="/home" router-direction="none">
+        <ion-button class="nav-btn" :class="{ active: active === 'home' }" fill="clear" router-link="/home" router-direction="root">
             <div class="btn-inner">
                 <ion-icon name="home"/>
                 <span>홈</span>
             </div>
         </ion-button>
-        <ion-button class="nav-btn" :class="{ active: active === 'map' }" fill="clear" router-link="/map" router-direction="none">
+        <ion-button class="nav-btn" :class="{ active: active === 'map' }" fill="clear" router-link="/map" router-direction="root">
             <div class="btn-inner">
                 <ion-icon name="map-outline"/>
                 <span>지도</span>
             </div>
         </ion-button>
-        <ion-button class="nav-btn" :class="{ active: active === 'sns' }" fill="clear" router-link="/sns" router-direction="none">
+        <ion-button class="nav-btn" :class="{ active: active === 'sns' }" fill="clear" router-link="/sns" router-direction="root">
             <div class="btn-inner">
                 <ion-icon name="people-outline"/>
                 <span>SNS</span>
             </div>
         </ion-button>
-        <ion-button class="nav-btn" :class="{ active: active === 'profile' }" fill="clear" :router-link="isLoggedIn ? '/mypage' : '/auth'" router-direction="none">
+        <ion-button class="nav-btn" :class="{ active: active === 'profile' }" fill="clear" :router-link="isLoggedIn ? '/mypage' : '/auth'" router-direction="root">
             <div class="btn-inner">
                 <ion-icon name="person-outline"/>
                 <span>{{ isLoggedIn ? '프로필' : '로그인' }}</span>
