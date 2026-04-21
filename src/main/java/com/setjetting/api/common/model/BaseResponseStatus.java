@@ -24,7 +24,7 @@ public enum BaseResponseStatus {
     INVALID_USER_INFO(false,20004,"이메일 또는 비밀번호를 확인해주세요."),
     INVALID_USER_DISABLED(false,20005,"이메일 인증이 필요합니다. 이메일을 확인해주세요."),
     DUPLICATE_USER_EMAIL(false,20006,"중복된 이메일입니다. 다른 이메일을 사용해주세요."),
-    LECTURE_NOT_IN_COURSE(false,20007,"해당 강의는 해당 코스의 강의가 아닙니다."),
+    INVALID_USER_IDX(false, 20007, "존재하지 않는 유저 인덱스입니다."),
     ALREADY_LECTURE_COMPLETE(false,20008,"해당 강의를 이미 완료하였습니다."),
     INVALID_USER_PASSWORD(false,20009,"비밀번호가 일치하지 않습니다."),
     INVALID_USER_EMAIL(false,20010,"이메일 정보가 잘못되었습니다."),

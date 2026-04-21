@@ -1,5 +1,7 @@
 package com.setjetting.api.domain.post;
 
+import com.setjetting.api.common.exception.BaseException;
+import com.setjetting.api.common.model.BaseResponseStatus;
 import com.setjetting.api.domain.comment.Comment;
 import com.setjetting.api.domain.comment.CommentRepository;
 import com.setjetting.api.domain.comment.model.CreateCommentReq;
@@ -59,7 +61,7 @@ public class PostService {
     @Transactional
     public CreatePostRes createPost(CreatePostReq dto) {
         User user = userRepository.findById(getCurrentUserIdx())
-                .orElseThrow(() -> new IllegalArgumentException("해당 유저를 찾을 수 없습니다."));
+                .orElseThrow(() -> new BaseException(BaseResponseStatus.INVALID_USER_INFO));
 
         Post post = Post.builder()
                 .user(user)
@@ -204,7 +206,7 @@ public class PostService {
 
     public PostDetailRes getPostDetail(Long idx) {
         Post post = postRepository.findByIdWithUserAndImages(idx)
-                .orElseThrow(() -> new IllegalArgumentException("해당 포스팅을 찾을 수 없습니다."));
+                .orElseThrow(() -> new BaseException(BaseResponseStatus.POST_NOT_FOUND));
 
         String placeName = null;
         String contentTitle = null;
@@ -226,10 +228,10 @@ public class PostService {
     @Transactional
     public CreateCommentRes createComment(Long postIdx, CreateCommentReq createCommentReq) {
         User user = userRepository.findById(getCurrentUserIdx())
-                .orElseThrow(() -> new IllegalArgumentException("해당 유저를 찾을 수 없습니다."));
+                .orElseThrow(() -> new BaseException(BaseResponseStatus.INVALID_USER_IDX));
 
         Post post = postRepository.findById(postIdx)
-                .orElseThrow(() -> new IllegalArgumentException("해당 포스팅을 찾을 수 없습니다."));
+                .orElseThrow(() -> new BaseException(BaseResponseStatus.POST_NOT_FOUND));
 
         Comment comment = Comment.builder()
                 .user(user)
