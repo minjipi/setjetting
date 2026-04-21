@@ -281,7 +281,7 @@ function scrollNearby(dir: 1 | -1) {
         if (!startTime) startTime = timestamp;
         const elapsed = timestamp - startTime;
         const progress = Math.min(elapsed / duration, 1);
-        el.scrollLeft = start + (target - start) * easeInOutCubic(progress);
+        el!.scrollLeft = start + (target - start) * easeInOutCubic(progress);
         if (progress < 1) requestAnimationFrame(step);
     }
 
@@ -302,9 +302,9 @@ function requestLocation() {
     );
 }
 
-const popularContents = ref([]);
-const popularPlace = ref([]);
-const mapPlaces = ref([]);
+const popularContents = ref<any[]>([]);
+const popularPlace = ref<any[]>([]);
+const mapPlaces = ref<any[]>([]);
 
 async function loadTrendData() {
     const [trendContents, trendPlaces] = await Promise.all([

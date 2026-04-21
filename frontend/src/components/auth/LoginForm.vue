@@ -113,7 +113,7 @@ function validatePassword(): boolean {
 
 async function onSubmit() {
   errorMsg.value = '';
-  const ok = validateEmail() & validatePassword();
+  const ok = validateEmail() && validatePassword();
   if (!ok) return;
 
   loading.value = true;
