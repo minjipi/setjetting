@@ -6,6 +6,8 @@ import MyPage from '@/pages/MyPage.vue';
 import CameraPage from '@/pages/CameraPage.vue';
 import MapPage from '@/pages/MapPage.vue';
 import SnsPage from '@/pages/SnsPage.vue';
+import PostWritePage from '@/pages/PostWritePage.vue';
+import PostDetailPage from '@/pages/PostDetailPage.vue';
 
 const routes: Array<RouteRecordRaw> = [
   {
@@ -43,6 +45,17 @@ const routes: Array<RouteRecordRaw> = [
     path: '/sns',
     name: 'Sns',
     component: SnsPage,
+  },
+  {
+    path: '/post/write',
+    name: 'PostWrite',
+    component: PostWritePage,
+    meta: { requiresAuth: true },
+  },
+  {
+    path: '/post/:idx',
+    name: 'PostDetail',
+    component: PostDetailPage,
   },
   {
     path: '/contents/:id',

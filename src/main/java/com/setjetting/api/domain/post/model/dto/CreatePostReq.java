@@ -23,6 +23,9 @@ public class CreatePostReq {
     @Schema(description = "포스팅 전체 설명", example = "이번 주말에 촬영지에 다녀왔는데 너무 좋았어요.")
     private String description;
 
+    @Schema(description = "연관 장소 IDX", example = "3")
+    private Long placeIdx;
+
     @Schema(description = "업로드할 이미지 목록")
     private List<ImageReq> images;
 

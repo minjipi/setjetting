@@ -6,7 +6,9 @@ import org.springframework.stereotype.Repository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import java.util.List;
 import java.util.Optional;
+
 
 @Repository
 public interface PostRepository extends JpaRepository<Post, Long> {
@@ -16,4 +18,7 @@ public interface PostRepository extends JpaRepository<Post, Long> {
             "WHERE p.idx = :idx")
     Optional<Post> findByIdWithUserAndImages(@Param("idx") Long idx);
 
+    List<Post> findByUser_IdxOrderByCreatedAtDesc(Long userIdx);
+
+    List<Post> findAllByOrderByCreatedAtDesc();
 }

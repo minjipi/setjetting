@@ -30,6 +30,9 @@ public class Post extends BaseEntity {
     @Column(name = "DESCRIPTION", columnDefinition = "TEXT")
     private String description;
 
+    @Column(name = "PLACE_IDX")
+    private Long placeIdx;
+
     // 포스트가 삭제되면 하위 이미지도 함께 삭제되도록 Cascade
     @Builder.Default
     @OneToMany(mappedBy = "post", cascade = CascadeType.ALL, orphanRemoval = true)
